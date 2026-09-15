@@ -1,5 +1,5 @@
 ﻿// scripts/seed-render-users.js
-// Creates verified test users (nurse + patient) directly in Atlas.
+// Creates verified test users (nurse + patient + driver) directly in Atlas.
 // Idempotent — safe to run repeatedly.
 
 require('dotenv').config();
@@ -17,9 +17,9 @@ const TEST_USERS = [
     profile: {
       idNumber: '9001015800088',
       phone: '0814725897',
-      dateOfBirth: new Date('1990-01-01'),        // ✅ FIX: added
-      gender: 'female',                            // ✅ likely required
-      address: 'Windhoek, Namibia',                // ✅ likely required
+      dateOfBirth: new Date('1990-01-01'),
+      gender: 'female',
+      address: 'Windhoek, Namibia',
       qualification: 'Registered Nurse',
       specialization: 'General Care',
       licenseNumber: 'NR-2024-001'
@@ -39,6 +39,23 @@ const TEST_USERS = [
       isChronic: false,
       smsOptIn: true
     }
+  },
+  {
+    role: 'driver',
+    name: 'Driver Test',
+    email: 'driver@test.com',
+    password: 'Driver@1234',
+    profile: {
+      idNumber: '8808085800077',
+      phone: '0814725800',
+      dateOfBirth: new Date('1988-08-08'),
+      gender: 'male',
+      address: 'Windhoek, Namibia',
+      licenseNumber: 'DL-2024-001',
+      vehiclePlate: 'N-12345-W',
+      vehicleType: 'Motorcycle',
+      status: 'active'
+    }
   }
 ];
 
@@ -46,6 +63,7 @@ const TEST_USERS = [
 const User = require('../models/User');
 const Patient = require('../models/Patient');
 const Nurse = require('../models/Nurse');
+const Driver = require('../models/Driver');
 
 // -------- HELPERS --------
 const ok = (s) => console.log('\x1b[32m✅ ' + s + '\x1b[0m');
@@ -87,71 +105,107 @@ function blindIndex(value) {
       const emailHash = blindIndex(spec.email);
       info('emailHash: ' + emailHash.substring(0, 16) + '…');
 
-      // Cleanup — look up by hash
-      const existing = await User.findOne({ emailHash });
-      if (existing) {
-        warn('Existing user found — deleting');
-        const uid = existing._id;
-        // Delete profile first (in case of FK-like checks)
-        await Patient.deleteMany({ userId: uid });
-        await Nurse.deleteMany({ userId: uid });
-        await User.deleteOne({ _id: uid });
-        ok('Old records deleted');
+      // ---------- CLEANUP ----------
+      // Drivers live in their own collection (no User entry), so handle separately
+      if (spec.role === 'driver') {
+        const existingDriver = await Driver.findOne({ emailHash }).catch(() => null)
+          || await Driver.findOne({ email: spec.email }).catch(() => null);
+        if (existingDriver) {
+          warn('Existing driver found — deleting');
+          await Driver.deleteOne({ _id: existingDriver._id });
+          ok('Old driver deleted');
+        }
+      } else {
+        const existingUser = await User.findOne({ emailHash });
+        if (existingUser) {
+          warn('Existing user found — deleting');
+          const uid = existingUser._id;
+          await Patient.deleteMany({ userId: uid });
+          await Nurse.deleteMany({ userId: uid });
+          await User.deleteOne({ _id: uid });
+          ok('Old records deleted');
+        }
       }
 
-      // Hash password
+      // ---------- HASH PASSWORD ----------
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(spec.password, salt);
 
-      // Create User
-      const user = new User({
-        name: spec.name,
-        email: spec.email,
-        password: passwordHash,
-        role: spec.role,
-        isVerified: true,
-        profileComplete: true,
-        isActive: true
-      });
-      await user.save();
-      ok('User created: ' + user._id);
-      ok('  name : ' + user.name);
-      ok('  email: ' + user.email);
-
-      // Create profile
-      if (spec.role === 'patient') {
-        const patient = new Patient({
-          userId: user._id,
+      // ---------- CREATE ----------
+      if (spec.role === 'driver') {
+        // Drivers use their own model with its own login
+        const driver = new Driver({
           name: spec.name,
           email: spec.email,
+          password: passwordHash,
           phone: spec.profile.phone,
           idNumber: spec.profile.idNumber,
           dateOfBirth: spec.profile.dateOfBirth,
           gender: spec.profile.gender,
           address: spec.profile.address,
-          isChronic: spec.profile.isChronic || false,
-          smsOptIn: spec.profile.smsOptIn !== false
+          licenseNumber: spec.profile.licenseNumber,
+          vehiclePlate: spec.profile.vehiclePlate,
+          vehicleType: spec.profile.vehicleType,
+          status: spec.profile.status || 'active',
+          isActive: true,
+          isVerified: true
         });
-        await patient.save();
-        ok('Patient profile: ' + patient._id);
-        ok('  phone: ' + patient.phone);
-      } else if (spec.role === 'nurse') {
-        const nurse = new Nurse({
-          userId: user._id,
+        await driver.save();
+        ok('Driver created: ' + driver._id);
+        ok('  name : ' + driver.name);
+        ok('  email: ' + driver.email);
+        ok('  phone: ' + driver.phone);
+        ok('  status: ' + driver.status);
+      } else {
+        // Nurse & Patient use User + profile
+        const user = new User({
           name: spec.name,
           email: spec.email,
-          phone: spec.profile.phone,
-          idNumber: spec.profile.idNumber,
-          dateOfBirth: spec.profile.dateOfBirth,      // ✅ FIX
-          gender: spec.profile.gender,                 // ✅ FIX
-          address: spec.profile.address,               // ✅ FIX
-          qualification: spec.profile.qualification,
-          specialization: spec.profile.specialization,
-          licenseNumber: spec.profile.licenseNumber
+          password: passwordHash,
+          role: spec.role,
+          isVerified: true,
+          profileComplete: true,
+          isActive: true
         });
-        await nurse.save();
-        ok('Nurse profile: ' + nurse._id);
-        ok('  phone: ' + nurse.phone);
+        await user.save();
+        ok('User created: ' + user._id);
+        ok('  name : ' + user.name);
+        ok('  email: ' + user.email);
+
+        if (spec.role === 'patient') {
+          const patient = new Patient({
+            userId: user._id,
+            name: spec.name,
+            email: spec.email,
+            phone: spec.profile.phone,
+            idNumber: spec.profile.idNumber,
+            dateOfBirth: spec.profile.dateOfBirth,
+            gender: spec.profile.gender,
+            address: spec.profile.address,
+            isChronic: spec.profile.isChronic || false,
+            smsOptIn: spec.profile.smsOptIn !== false
+          });
+          await patient.save();
+          ok('Patient profile: ' + patient._id);
+          ok('  phone: ' + patient.phone);
+        } else if (spec.role === 'nurse') {
+          const nurse = new Nurse({
+            userId: user._id,
+            name: spec.name,
+            email: spec.email,
+            phone: spec.profile.phone,
+            idNumber: spec.profile.idNumber,
+            dateOfBirth: spec.profile.dateOfBirth,
+            gender: spec.profile.gender,
+            address: spec.profile.address,
+            qualification: spec.profile.qualification,
+            specialization: spec.profile.specialization,
+            licenseNumber: spec.profile.licenseNumber
+          });
+          await nurse.save();
+          ok('Nurse profile: ' + nurse._id);
+          ok('  phone: ' + nurse.phone);
+        }
       }
 
       console.log('');
@@ -169,12 +223,26 @@ function blindIndex(value) {
     }
   }
 
-  // ---- Verification ----
+  // ---------- VERIFICATION ----------
   head('VERIFICATION');
-  let userCount = 0, patientCount = 0, nurseCount = 0;
+  let userCount = 0, patientCount = 0, nurseCount = 0, driverCount = 0;
 
   for (const spec of TEST_USERS) {
     const h = blindIndex(spec.email);
+
+    if (spec.role === 'driver') {
+      const d = await Driver.findOne({ emailHash: h }).catch(() => null)
+        || await Driver.findOne({ email: spec.email }).catch(() => null);
+      if (d) {
+        driverCount++;
+        console.log(`  ✅ driver   : ${d._id} — "${d.name}"`);
+        console.log(`     status: ${d.status}`);
+      } else {
+        console.log('  ❌ driver user NOT FOUND');
+      }
+      continue;
+    }
+
     const u = await User.findOne({ emailHash: h });
     if (u) {
       userCount++;
@@ -197,17 +265,20 @@ function blindIndex(value) {
   console.log('  Users           : ' + userCount + ' / 2');
   console.log('  Patient profile : ' + patientCount + ' / 1');
   console.log('  Nurse profile   : ' + nurseCount + ' / 1');
+  console.log('  Driver          : ' + driverCount + ' / 1');
 
-  if (userCount === 2 && patientCount === 1 && nurseCount === 1) {
+  if (userCount === 2 && patientCount === 1 && nurseCount === 1 && driverCount === 1) {
     console.log('');
-    ok('🎉 Seed complete');
+    ok('🎉 Seed complete — all test users ready');
   } else {
-    warn('Some records missing');
+    warn('Some records missing — see above');
   }
 
   console.log('');
-  console.log('  📧 Nurse  : nodejsmongodb12@gmail.com / Nurse@1234');
-  console.log('  📧 Patient: kevinnngondo@gmail.com   / Patient@1234');
+  console.log('  Login credentials:');
+  console.log('  📧 Nurse  : nodejsmongodb12@gmail.com  / Nurse@1234');
+  console.log('  📧 Patient: kevinnngondo@gmail.com    / Patient@1234');
+  console.log('  📧 Driver : driver@test.com           / Driver@1234');
   console.log('');
 
   await mongoose.connection.close();
