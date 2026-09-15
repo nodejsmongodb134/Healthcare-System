@@ -10,7 +10,7 @@ const crypto = require('crypto');
 // ✅ Explicit SMTP config — works on Render
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 587,
+  port: 443,
   secure: false,                    // true for 465 (SSL), false for 587 (STARTTLS)
   auth: {
     user: process.env.EMAIL_USER,
