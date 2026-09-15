@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
   greetingTimeout: 10000,
   socketTimeout: 10000,
   tls: {
-    rejectUnauthorized: false      // allows self-signed certs if any
+    rejectUnauthorized: true     // allows self-signed certs if any
   }
 });
 
