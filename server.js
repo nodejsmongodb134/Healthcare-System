@@ -8,6 +8,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cookieParser = require('cookie-parser');
 const fs = require('fs');
+const MongoStore = require('connect-mongo');
 
 const {
   requireAuth,
@@ -69,6 +70,9 @@ const adminAnnouncementRoutes = require('./routes/admin-announcement');
 
 const app = express();
 
+// ============ TRUST PROXY (required for Render HTTPS) ============
+app.set('trust proxy', 1);
+
 // ============ MongoDB ============
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected successfully'))
@@ -126,6 +130,12 @@ const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: true,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: 'sessions',
+    ttl: 3600,
+    autoRemove: 'native'
+  }),
   cookie: {
     maxAge: 3600000,
     httpOnly: true,
@@ -438,8 +448,8 @@ app.set('io', io);
 const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
-  server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+  server.listen('0.0.0.0', PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`🔒 Security: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'} mode`);
   });
 }
