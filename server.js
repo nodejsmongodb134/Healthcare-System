@@ -125,7 +125,6 @@ console.log(`🗺️ Offline tiles: ${hasTiles ? '✅ Available' : '❌ Not foun
 // ============ MIDDLEWARE STACK (ORDER MATTERS) ==============
 // ============================================================
 
-// ---------- 1. SESSION ----------
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
@@ -448,7 +447,7 @@ app.set('io', io);
 const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
-  server.listen('0.0.0.0', PORT, () => {
+  server.listen('0.0.0.0',PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`🔒 Security: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'} mode`);
   });
