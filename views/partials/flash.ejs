@@ -1,0 +1,19 @@
+<%
+  const types = [
+    { key: 'success_msg', cls: 'success', icon: 'check-circle' },
+    { key: 'error_msg',   cls: 'danger',  icon: 'exclamation-circle' },
+    { key: 'warning_msg', cls: 'warning', icon: 'exclamation-triangle' },
+    { key: 'info_msg',    cls: 'info',    icon: 'info-circle' }
+  ];
+%>
+<% types.forEach(({ key, cls, icon }) => { %>
+  <% const msgs = locals[key]; %>
+  <% if (msgs) { %>
+    <% (Array.isArray(msgs) ? msgs : [msgs]).forEach(msg => { %>
+      <div class="alert alert-<%= cls %> alert-dismissible fade show">
+        <i class="bi bi-<%= icon %>"></i> <%= msg %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <% }) %>
+  <% } %>
+<% }) %>

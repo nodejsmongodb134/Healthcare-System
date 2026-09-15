@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* ========== GLOBAL ========== */
+        body {
+            background: #f0f2f5;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 0;
+        }
+        .navbar-brand {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .navbar-text {
+            font-size: 0.85rem;
+        }
+        .btn-outline-light {
+            border-color: rgba(255,255,255,0.5);
+            color: white;
+        }
+        .btn-outline-light:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            border: none;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+        }
+        .btn {
+            border-radius: 25px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            padding: 6px 14px;
+        }
+        .btn-sm {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+        }
+        .btn-primary {
+            background: #667eea;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-success {
+            background: #28a745;
+            border: none;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-danger {
+            background: #dc3545;
+            border: none;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-outline-secondary {
+            color: #667eea;
+            border-color: #667eea;
+        }
+        .btn-outline-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        .alert {
+            animation: slideDown 0.5s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        /* ========== STAT CARDS ========== */
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #667eea;
+            line-height: 1.2;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 15px 10px;
+        }
+        @media (max-width: 575.98px) {
+            .stat-number {
+                font-size: 1.6rem;
+            }
+            .stat-card {
+                padding: 10px 5px;
+            }
+        }
+
+        /* ========== STATUS BADGES ========== */
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-active { background: #28a745; color: white; }
+        .status-inactive { background: #dc3545; color: white; }
+        .status-pending { background: #ffc107; color: #856404; }
+        .status-confirmed { background: #28a745; color: white; }
+        .status-cancelled { background: #dc3545; color: white; }
+        .status-completed { background: #17a2b8; color: white; }
+        .status-unread { background: #dc3545; color: white; }
+        .status-read { background: #17a2b8; color: white; }
+        .status-replied { background: #28a745; color: white; }
+        .status-in-transit { background: #17a2b8; color: white; }
+        .status-delivered { background: #28a745; color: white; }
+        .status-on-leave { background: #ffc107; color: #856404; }
+
+        /* ========== TABLE ========== */
+        .table-responsive {
+            max-height: 350px;
+            overflow-y: auto;
+            border-radius: 10px;
+        }
+        .table-responsive::-webkit-scrollbar { width: 6px; }
+        .table-responsive::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .table-responsive::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+        .table {
+            font-size: 0.85rem;
+        }
+        .table th {
+            font-weight: 600;
+            color: #555;
+            white-space: nowrap;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .table .btn {
+            white-space: nowrap;
+        }
+
+        /* ========== QUICK ACTIONS ========== */
+        .quick-actions .btn {
+            margin: 2px;
+        }
+
+        /* ========== RESPONSIVE TWEAKS ========== */
+        @media (max-width: 575.98px) {
+            body { font-size: 13px; }
+            .container { padding-left: 12px; padding-right: 12px; }
+            .navbar-brand { font-size: 0.95rem; }
+            .navbar-text { font-size: 0.75rem; }
+            .card { border-radius: 10px; }
+            .card .p-4 { padding: 16px !important; }
+            .card .p-3 { padding: 12px !important; }
+            .btn { font-size: 0.7rem; padding: 5px 10px; }
+            .btn-sm { font-size: 0.6rem; padding: 3px 8px; }
+            .quick-actions .btn { margin: 3px; font-size: 0.65rem; padding: 4px 8px; }
+            .table { font-size: 0.75rem; }
+            .table th, .table td { padding: 4px 6px; }
+            .table-responsive { max-height: 250px; }
+            .stat-number { font-size: 1.6rem; }
+            .alert-info h4 { font-size: 1rem; }
+            .alert-info p { font-size: 0.85rem; margin-bottom: 0; }
+            .quick-actions { flex-direction: column; }
+            .quick-actions .btn { width: 100%; }
+        }
+
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container { padding-left: 20px; padding-right: 20px; }
+            .card .p-4 { padding: 24px !important; }
+            .card .p-3 { padding: 16px !important; }
+            .btn { font-size: 0.8rem; padding: 6px 14px; }
+            .table { font-size: 0.8rem; }
+            .stat-number { font-size: 1.8rem; }
+            .quick-actions .btn { margin: 3px; }
+        }
+
+        @media (min-width: 992px) {
+            .container { padding-left: 40px; padding-right: 40px; }
+            .card .p-4 { padding: 32px !important; }
+            .card .p-3 { padding: 20px !important; }
+            .btn { font-size: 0.85rem; padding: 8px 20px; }
+            .stat-number { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVBAR with responsive toggler ========== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a href="/admin/change-password" class="btn btn-outline-light btn-sm me-2">
+                            <i class="bi bi-key"></i> Change Password
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="navbar-text text-white me-3">
+                            <i class="bi bi-person-circle"></i> <%= user.name %>
+                            <span class="badge bg-light text-dark ms-2"><%= user.role %></span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+
+        <!--------- Flash Messages -------------->
+
+        <%- include('../partials/flash') %>
+
+
+        <!-- Header -->
+        <div class="alert alert-info shadow-sm">
+            <h4 class="h5"><i class="bi bi-shield-lock"></i> Admin Dashboard</h4>
+            <p class="mb-0">Monitor and manage the entire system.</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row stats-grid g-2 mb-4">
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card stat-card">
+                    <div class="stat-number"><%= stats.totalUsers %></div>
+                    <small>Users</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card stat-card">
+                    <div class="stat-number"><%= stats.totalPatients %></div>
+                    <small>Patients</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card stat-card">
+                    <div class="stat-number"><%= stats.totalNurses %></div>
+                    <small>Nurses</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card stat-card">
+                    <div class="stat-number"><%= stats.totalDrivers %></div>
+                    <small>Drivers</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card stat-card">
+                    <div class="stat-number"><%= stats.totalAppointments %></div>
+                    <small>Appointments</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card stat-card">
+                    <div class="stat-number"><%= stats.totalOrders %></div>
+                    <small>Orders</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card p-3 p-md-4 mb-4">
+            <h5 class="h6"><i class="bi bi-tools"></i> Quick Actions</h5>
+            <hr>
+            <div class="d-flex flex-wrap gap-1 quick-actions">
+                <a href="/admin/nurses/create" class="btn btn-success"><i class="bi bi-person-plus"></i> Create Nurse</a>
+                <a href="/admin/drivers/create" class="btn btn-success"><i class="bi bi-truck"></i> Create Driver</a>
+                <a href="/admin/orders/manage" class="btn btn-outline-primary"><i class="bi bi-prescription"></i> Orders</a>
+                <a href="/admin/messages/manage" class="btn btn-outline-primary"><i class="bi bi-envelope"></i> Messages</a>
+                <a href="/admin/announcements" class="btn btn-outline-primary"><i class="bi bi-megaphone"></i> Announcements</a>
+                <a href="/admin/patients/manage" class="btn btn-outline-primary"><i class="bi bi-people"></i> Manage Patients</a>
+                <a href="/admin/nurses/manage" class="btn btn-outline-primary"><i class="bi bi-person-badge"></i> Manage Nurses</a>
+                <a href="/admin/notifications" class="btn btn-outline-primary"><i class="bi bi-megaphone"></i> Notifications</a>
+                <a href="/admin/export" class="btn btn-outline-primary"><i class="bi bi-download"></i> Export Data</a>
+                <a href="/admin/analytics" class="btn btn-outline-primary"><i class="bi bi-graph-up"></i> Analytics</a>
+                <a href="/admin/appointments" class="btn btn-outline-primary"><i class="bi bi-calendar"></i> Appointments</a>
+                <a href="/admin/patients" class="btn btn-outline-primary"><i class="bi bi-people"></i> Patients</a>
+                <a href="/admin/drivers" class="btn btn-outline-primary"><i class="bi bi-truck"></i> Drivers</a>
+            </div>
+        </div>
+
+        <!-- Nurses Management Table -->
+        <div class="card p-3 p-md-4 mb-4">
+            <h5 class="h6"><i class="bi bi-person-badge"></i> Nurses</h5>
+            <hr>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% nurses.forEach(n => { %>
+                        <tr>
+                            <td><strong><%= n.name %></strong></td>
+                            <td><%= n.email %></td>
+                            <td>
+                                <span class="status-badge <%= n.profileComplete ? 'status-active' : 'status-inactive' %>">
+                                    <%= n.profileComplete ? 'Active' : 'Inactive' %>
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a href="/admin/nurses/<%= n._id %>" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                                <form action="/admin/nurses/<%= n._id %>/revoke" method="POST" style="display:inline;" onsubmit="return confirm('Revoke nurse access?')">
+                                    <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-x-circle"></i></button>
+                                </form>
+                                <form action="/admin/users/<%= n._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Delete this user?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h6 class="h6"><i class="bi bi-calendar-event"></i> Recent Appointments</h6>
+                    <ul class="list-unstyled small">
+                        <% recentAppointments.forEach(a => { %>
+                            <li class="border-bottom py-1">
+                                <strong><%= a.patientName %></strong><br>
+                                <%= new Date(a.date).toLocaleDateString() %> at <%= a.time %>
+                                <span class="badge bg-secondary"><%= a.status %></span>
+                            </li>
+                        <% }) %>
+                        <% if (recentAppointments.length === 0) { %>
+                            <li class="text-muted">No appointments yet</li>
+                        <% } %>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h6 class="h6"><i class="bi bi-envelope"></i> Recent Messages</h6>
+                    <ul class="list-unstyled small">
+                        <% recentMessages.forEach(m => { %>
+                            <li class="border-bottom py-1">
+                                <strong><%= m.patientName %></strong><br>
+                                <%= m.subject %>
+                                <span class="badge bg-secondary float-end"><%= m.status %></span>
+                            </li>
+                        <% }) %>
+                        <% if (recentMessages.length === 0) { %>
+                            <li class="text-muted">No messages yet</li>
+                        <% } %>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h6 class="h6"><i class="bi bi-prescription"></i> Recent Orders</h6>
+                    <ul class="list-unstyled small">
+                        <% recentOrders.forEach(o => { %>
+                            <li class="border-bottom py-1">
+                                <strong><%= o.patientName %></strong><br>
+                                <%= o.prescriptionName %>
+                                <span class="badge bg-secondary float-end"><%= o.status %></span>
+                            </li>
+                        <% }) %>
+                        <% if (recentOrders.length === 0) { %>
+                            <li class="text-muted">No orders yet</li>
+                        <% } %>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-dismiss flash messages
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.alert').forEach(a => {
+                setTimeout(() => {
+                    a.style.transition = 'opacity 0.5s ease';
+                    a.style.opacity = '0';
+                    setTimeout(() => a.style.display = 'none', 500);
+                }, 5000);
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background: #f0f2f5; font-size: 14px; line-height: 1.6; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 10px 0; }
+        .navbar-brand { font-size: 1.1rem; font-weight: 600; }
+        .navbar-text { font-size: 0.85rem; }
+        .btn-outline-light { border-color: rgba(255,255,255,0.5); color: white; }
+        .btn-outline-light:hover { background: rgba(255,255,255,0.2); border-color: white; }
+        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); border: none; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+        .btn-primary { background: #667eea; border: none; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-outline-secondary { color: #667eea; border-color: #667eea; }
+        .btn-outline-secondary:hover { background: #667eea; color: white; }
+        .btn-warning { background: #ffc107; border: none; color: #856404; }
+        .btn-warning:hover { background: #e0a800; color: #856404; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+        .status-active { background: #28a745; color: white; }
+        .status-pending { background: #ffc107; color: #856404; }
+        .status-unread { background: #dc3545; color: white; }
+        .status-read { background: #17a2b8; color: white; }
+        .status-replied { background: #28a745; color: white; }
+        .status-in-transit { background: #17a2b8; color: white; }
+        .status-delivered { background: #28a745; color: white; }
+        .status-completed { background: #17a2b8; color: white; }
+        .chronic-badge { background: #dc3545; color: white; }
+        .non-chronic-badge { background: #6c757d; color: white; }
+        .patient-card { border-left: 4px solid #667eea; transition: all 0.2s; }
+        .patient-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .patient-list-container { max-height: 600px; overflow-y: auto; border-radius: 10px; }
+        .patient-list-container::-webkit-scrollbar { width: 6px; }
+        .patient-list-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .patient-list-container::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+        .detail-card { border-left: 4px solid #667eea; background: #f8f9fa; border-radius: 8px; padding: 12px 15px; margin-bottom: 10px; }
+        .detail-card:hover { background: #e9ecef; }
+        .info-row { display: flex; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .info-label { font-weight: 600; color: #555; min-width: 120px; }
+        .info-value { flex: 1; word-break: break-word; }
+        .modal-content { border-radius: 15px; }
+        .modal-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px 15px 0 0; }
+        .modal-header .btn-close { filter: brightness(0) invert(1); }
+        .nav-tabs .nav-link { color: #555; font-weight: 500; }
+        .nav-tabs .nav-link.active { color: #667eea; border-bottom: 2px solid #667eea; }
+        @media (max-width: 575.98px) {
+            body { font-size: 13px; }
+            .container { padding-left: 12px; padding-right: 12px; }
+            .card .p-3 { padding: 12px !important; }
+            .btn { font-size: 0.75rem; padding: 5px 10px; }
+            .patient-card .row > div { text-align: left; margin-bottom: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><span class="navbar-text text-white me-3"><i class="bi bi-person-circle"></i> <%= user.name %><span class="badge bg-light text-dark ms-2"><%= user.role %></span></span></li>
+                    <li class="nav-item"><a href="/auth/nurse-dashboard" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-arrow-left"></i> Dashboard</a></li>
+                    <li class="nav-item"><a href="/auth/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="alert alert-info shadow-sm">
+            <h4 class="h5"><i class="bi bi-people"></i> Patient Management</h4>
+            <p class="mb-0">View patients, mark chronic, assign medication and refill timers.</p>
+        </div>
+
+        <!--------- Flash Messages -------------->
+
+        <%- include('../partials/flash') %>
+
+
+        <!-- Search & Filter (optional but useful) -->
+        <div class="row g-2 mb-3 align-items-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search by name or email..." onkeyup="searchPatients()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Patients List -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card p-3 p-md-4">
+                    <h5 class="h6"><i class="bi bi-people"></i> All Patients</h5>
+                    <hr>
+                    <% if (patients && patients.length > 0) { %>
+                        <div class="patient-list-container">
+                            <% patients.forEach(patient => { %>
+                                <div class="card p-3 mb-2 patient-card">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-12 col-md-3">
+                                            <div class="fw-bold"><i class="bi bi-person"></i> <%= patient.name %></div>
+                                            <small class="text-muted"><i class="bi bi-envelope"></i> <%= patient.email %></small>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <% if (patient.profile && patient.profile.isChronic) { %>
+                                                <span class="badge chronic-badge"><i class="bi bi-heart-pulse"></i> Chronic</span>
+                                                <br>
+                                                <small class="text-muted"><i class="bi bi-capsule"></i> <%= patient.profile.medicationName || 'No med' %></small>
+                                                <br>
+                                                <% if (patient.profile.nextRefillDate) { %>
+                                                    <% const daysLeft = Math.ceil((patient.profile.nextRefillDate - new Date()) / (1000 * 60 * 60 * 24)); %>
+                                                    <small class="<%= daysLeft <= 7 ? 'text-danger' : 'text-warning' %>"><i class="bi bi-hourglass"></i> Refill in <%= daysLeft %> days</small>
+                                                <% } %>
+                                            <% } else { %>
+                                                <span class="badge non-chronic-badge">Not Chronic</span>
+                                            <% } %>
+                                        </div>
+                                        <div class="col-6 col-md-2">
+                                            <small class="text-muted"><i class="bi bi-telephone"></i> <%= patient.profile ? patient.profile.phone : 'N/A' %></small>
+                                        </div>
+                                        <div class="col-12 col-md-4 text-md-end">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewPatient('<%= patient._id %>')"><i class="bi bi-eye"></i> View</button>
+                                            <button class="btn btn-sm btn-warning" onclick="openChronicModal('<%= patient._id %>', '<%= patient.name %>', '<%= patient.profile ? patient.profile.medicationName : '' %>', '<%= patient.profile ? patient.profile.refillIntervalDays : '' %>', '<%= patient.profile ? patient.profile.isChronic : '' %>')"><i class="bi bi-heart-pulse"></i> Chronic</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-state text-center py-5">
+                            <i class="bi bi-people" style="font-size:3rem; color:#dee2e6;"></i>
+                            <h4 class="mt-3">No Patients Found</h4>
+                            <p class="text-muted">There are no registered patients yet.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PATIENT DETAILS MODAL (with tabs) ========== -->
+    <div class="modal fade" id="patientModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-badge"></i> Patient Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="patientModalBody">
+                    <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-warning" id="setChronicFromModal" onclick="setChronicFromModal()"><i class="bi bi-heart-pulse"></i> Set Chronic</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CHRONIC MEDICATION MODAL ========== -->
+    <div class="modal fade" id="chronicModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-heart-pulse"></i> Chronic Medication Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/nurse/patient/chronic/" method="POST" id="chronicForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="chronicPatientId" name="patientId">
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-person"></i> Patient</label>
+                            <input type="text" class="form-control" id="chronicPatientName" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="isChronic" name="isChronic" value="true">
+                                <label class="form-check-label" for="isChronic">Chronic Patient</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="medicationName" class="form-label"><i class="bi bi-capsule"></i> Medication Name</label>
+                            <input type="text" class="form-control" id="medicationName" name="medicationName" placeholder="e.g. Metformin 500mg">
+                        </div>
+                        <div class="mb-3">
+                            <label for="refillIntervalDays" class="form-label"><i class="bi bi-hourglass"></i> Refill Interval (days)</label>
+                            <input type="number" class="form-control" id="refillIntervalDays" name="refillIntervalDays" min="1" placeholder="e.g. 30">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-clock"></i> Timer Status</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="startTimer" name="startTimer" value="true">
+                                <label class="form-check-label" for="startTimer">Start Timer (sets last refill to now)</label>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> If "Start Timer" is checked, the next refill date will be calculated from today.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        // Search patients
+        function searchPatients() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            document.querySelectorAll('.patient-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(filter) ? 'block' : 'none';
+            });
+        }
+
+        // View patient details (with tabs)
+        function viewPatient(id) {
+            fetch(`/nurse/patient/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const p = data.patient;
+                        const profile = data.profile || {};
+                        const appointments = data.appointments || [];
+                        const messages = data.messages || [];
+                        const orders = data.orders || [];
+
+                        // Store patient id for "Set Chronic" button
+                        document.getElementById('setChronicFromModal').setAttribute('data-patient-id', id);
+                        document.getElementById('setChronicFromModal').setAttribute('data-patient-name', p.name);
+                        document.getElementById('setChronicFromModal').setAttribute('data-medication-name', profile.medicationName || '');
+                        document.getElementById('setChronicFromModal').setAttribute('data-refill-interval', profile.refillIntervalDays || '');
+                        document.getElementById('setChronicFromModal').setAttribute('data-is-chronic', profile.isChronic ? 'true' : 'false');
+
+                        document.getElementById('patientModalBody').innerHTML = `
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card p-3">
+                                        <h6><i class="bi bi-person-badge"></i> Profile Information</h6>
+                                        <hr>
+                                        <div class="info-row"><span class="info-label">Name:</span><span class="info-value">${p.name}</span></div>
+                                        <div class="info-row"><span class="info-label">Email:</span><span class="info-value">${p.email}</span></div>
+                                        <div class="info-row"><span class="info-label">Role:</span><span class="info-value"><span class="badge bg-primary">${p.role}</span></span></div>
+                                        <div class="info-row"><span class="info-label">Status:</span><span class="info-value"><span class="status-badge ${p.isVerified ? 'status-active' : 'status-pending'}">${p.isVerified ? 'Verified' : 'Unverified'}</span></span></div>
+                                        <div class="info-row"><span class="info-label">Joined:</span><span class="info-value">${new Date(p.createdAt).toLocaleDateString()}</span></div>
+                                        ${profile.idNumber ? `<div class="info-row"><span class="info-label">ID Number:</span><span class="info-value">${profile.idNumber}</span></div>` : ''}
+                                        ${profile.phone ? `<div class="info-row"><span class="info-label">Phone:</span><span class="info-value">${profile.phone}</span></div>` : ''}
+                                        ${profile.dateOfBirth ? `<div class="info-row"><span class="info-label">Date of Birth:</span><span class="info-value">${new Date(profile.dateOfBirth).toLocaleDateString()}</span></div>` : ''}
+                                        ${profile.isChronic ? `<div class="info-row"><span class="info-label">Chronic:</span><span class="info-value"><span class="badge chronic-badge">Yes</span></span></div><div class="info-row"><span class="info-label">Medication:</span><span class="info-value">${profile.medicationName || 'N/A'}</span></div><div class="info-row"><span class="info-label">Next Refill:</span><span class="info-value">${profile.nextRefillDate ? new Date(profile.nextRefillDate).toLocaleDateString() : 'N/A'}</span></div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <ul class="nav nav-tabs" id="patientTab" role="tablist">
+                                        <li class="nav-item"><a class="nav-link active" id="appointments-tab" data-bs-toggle="tab" href="#appointments">Appointments (${appointments.length})</a></li>
+                                        <li class="nav-item"><a class="nav-link" id="messages-tab" data-bs-toggle="tab" href="#messages">Messages (${messages.length})</a></li>
+                                        <li class="nav-item"><a class="nav-link" id="orders-tab" data-bs-toggle="tab" href="#orders">Orders (${orders.length})</a></li>
+                                    </ul>
+                                    <div class="tab-content">
+                                        <div class="tab-pane fade show active" id="appointments">
+                                            ${appointments.length > 0 ? appointments.map(appt => `
+                                                <div class="detail-card">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div><strong>${new Date(appt.date).toLocaleDateString()}</strong> at ${appt.time}<br><small class="text-muted">${appt.description}</small></div>
+                                                        <span class="status-badge status-${appt.status}">${appt.status.charAt(0).toUpperCase() + appt.status.slice(1)}</span>
+                                                    </div>
+                                                </div>
+                                            `).join('') : `<div class="empty-state"><i class="bi bi-calendar-x"></i><p>No appointments found</p></div>`}
+                                        </div>
+                                        <div class="tab-pane fade" id="messages">
+                                            ${messages.length > 0 ? messages.map(msg => `
+                                                <div class="detail-card">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div><strong>${msg.subject}</strong><br><small class="text-muted">${msg.message.substring(0, 80)}${msg.message.length > 80 ? '…' : ''}</small></div>
+                                                        <span class="status-badge status-${msg.status}">${msg.status.charAt(0).toUpperCase() + msg.status.slice(1)}</span>
+                                                    </div>
+                                                    ${msg.nurseReply ? `<div class="mt-2"><small class="text-success"><i class="bi bi-reply"></i> Reply: ${msg.nurseReply.substring(0, 60)}${msg.nurseReply.length > 60 ? '…' : ''}</small></div>` : ''}
+                                                </div>
+                                            `).join('') : `<div class="empty-state"><i class="bi bi-envelope-x"></i><p>No messages found</p></div>`}
+                                        </div>
+                                        <div class="tab-pane fade" id="orders">
+                                            ${orders.length > 0 ? orders.map(order => `
+                                                <div class="detail-card">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div><strong>${order.prescriptionName}</strong><br><small class="text-muted">${order.location}</small></div>
+                                                        <span class="status-badge status-${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                                                    </div>
+                                                    ${order.notes ? `<div class="mt-2"><small class="text-muted"><i class="bi bi-chat"></i> ${order.notes}</small></div>` : ''}
+                                                </div>
+                                            `).join('') : `<div class="empty-state"><i class="bi bi-prescription"></i><p>No orders found</p></div>`}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        const modal = new bootstrap.Modal(document.getElementById('patientModal'));
+                        modal.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to load patient details');
+                });
+        }
+
+        // Set chronic from patient modal
+        function setChronicFromModal() {
+            const btn = document.getElementById('setChronicFromModal');
+            const patientId = btn.getAttribute('data-patient-id');
+            const patientName = btn.getAttribute('data-patient-name');
+            const medicationName = btn.getAttribute('data-medication-name');
+            const refillInterval = btn.getAttribute('data-refill-interval');
+            const isChronic = btn.getAttribute('data-is-chronic');
+            // Close patient modal
+            bootstrap.Modal.getInstance(document.getElementById('patientModal')).hide();
+            // Open chronic modal
+            openChronicModal(patientId, patientName, medicationName, refillInterval, isChronic);
+        }
+
+        // Open Chronic Modal
+        function openChronicModal(patientId, patientName, medicationName, refillInterval, isChronic) {
+            document.getElementById('chronicForm').action = `/nurse/patient/chronic/${patientId}`;
+            document.getElementById('chronicPatientId').value = patientId;
+            document.getElementById('chronicPatientName').value = patientName;
+            document.getElementById('isChronic').checked = (isChronic === 'true');
+            document.getElementById('medicationName').value = medicationName || '';
+            document.getElementById('refillIntervalDays').value = refillInterval || '';
+            document.getElementById('startTimer').checked = false;
+            const modal = new bootstrap.Modal(document.getElementById('chronicModal'));
+            modal.show();
+        }
+
+        // Auto-dismiss flash messages
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.alert').forEach(a => {
+                setTimeout(() => { a.style.opacity = '0'; a.style.transition = 'opacity 0.5s'; setTimeout(() => a.style.display = 'none', 500); }, 5000);
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

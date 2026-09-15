@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background: #f0f2f5; font-size: 14px; line-height: 1.6; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 10px 0; }
+        .navbar-brand { font-size: 1.1rem; font-weight: 600; }
+        .navbar-text { font-size: 0.85rem; }
+        .btn-outline-light { border-color: rgba(255,255,255,0.5); color: white; }
+        .btn-outline-light:hover { background: rgba(255,255,255,0.2); border-color: white; }
+        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); border: none; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+        .btn-primary { background: #667eea; border: none; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-success { background: #28a745; border: none; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; border: none; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-warning { background: #ffc107; border: none; color: #856404; }
+        .btn-warning:hover { background: #e0a800; color: #856404; }
+        .btn-info { background: #17a2b8; border: none; color: white; }
+        .btn-info:hover { background: #138496; color: white; }
+        .btn-outline-secondary { color: #667eea; border-color: #667eea; }
+        .btn-outline-secondary:hover { background: #667eea; color: white; }
+        .form-label { font-weight: 600; color: #555; }
+        .form-control:focus { border-color: #667eea; box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25); }
+        .alert { animation: slideDown 0.5s ease-out; }
+        @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+
+        .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; display: inline-block; }
+        .status-pending { background: #ffc107; color: #856404; }
+        .status-in-transit { background: #17a2b8; color: white; }
+        .status-delivered { background: #28a745; color: white; }
+        .status-cancelled { background: #dc3545; color: white; }
+
+        .priority-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; letter-spacing: 0.2px; display: inline-block; margin-top: 4px; }
+        .priority-high { background: #dc3545; color: white; }
+        .priority-medium { background: #ffc107; color: #856404; }
+        .priority-low { background: #17a2b8; color: white; }
+
+        .order-card { transition: all 0.3s; border-left: 4px solid #667eea; background: white; }
+        .order-card:hover { transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .order-card.status-pending { border-left-color: #ffc107; }
+        .order-card.status-in-transit { border-left-color: #17a2b8; }
+        .order-card.status-delivered { border-left-color: #28a745; }
+        .order-card.status-cancelled { border-left-color: #dc3545; }
+
+        .order-list-container { max-height: 600px; overflow-y: auto; border-radius: 10px; }
+        .order-list-container::-webkit-scrollbar { width: 6px; }
+        .order-list-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .order-list-container::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+        .order-list-container::-webkit-scrollbar-thumb:hover { background: #5a67d8; }
+
+        .priority-form { display: inline-flex; align-items: center; gap: 4px; }
+        .priority-select { font-size: 0.7rem; padding: 2px 4px; border-radius: 4px; border: 1px solid #ced4da; }
+        .priority-btn { font-size: 0.65rem; padding: 2px 6px; border-radius: 20px; }
+
+        @media (max-width: 575.98px) {
+            body { font-size: 13px; }
+            .container { padding-left: 12px; padding-right: 12px; }
+            .card .p-4 { padding: 16px !important; }
+            .card .p-3 { padding: 12px !important; }
+            .btn { font-size: 0.75rem; padding: 5px 12px; }
+            .priority-badge { font-size: 0.65rem; padding: 2px 8px; }
+            .status-badge { font-size: 0.7rem; padding: 3px 8px; }
+            .order-card .row > div { text-align: left; margin-bottom: 4px; }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container { padding-left: 20px; padding-right: 20px; }
+            .card .p-4 { padding: 24px !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <span class="navbar-text text-white me-3"><i class="bi bi-person-circle"></i> Welcome, <%= user.name %><span class="badge bg-light text-dark ms-2"><%= user.role %></span></span>
+                    </li>
+                    <li class="nav-item"><a href="/auth/nurse-dashboard" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-arrow-left"></i> Dashboard</a></li>
+                    <li class="nav-item"><a href="/auth/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="alert alert-info shadow-sm">
+            <h4 class="h5"><i class="bi bi-prescription"></i> Order Management</h4>
+            <p class="mb-0">Manage patient orders, set priorities, and dispatch.</p>
+        </div>
+        
+
+                    <!--------- Flash Messages -------------->
+
+                    <%- include('../partials/flash') %>
+
+
+        <!-- Tabs -->
+        <div class="card p-3 p-md-4">
+            <ul class="nav nav-tabs" id="orderTabs" role="tablist">
+                <li class="nav-item" role="presentation"><button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab"><i class="bi bi-list-task"></i> Orders</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab"><i class="bi bi-plus-circle"></i> Create</button></li>
+            </ul>
+            <div class="tab-content">
+
+                <!-- TAB 1: ORDERS LIST -->
+                <div class="tab-pane fade show active" id="orders" role="tabpanel">
+                    <!-- Stats Cards -->
+                    <div class="row g-2 g-md-3 mb-4">
+                        <div class="col-6 col-md-3"><div class="card p-3 text-center stats-card"><h3 class="mb-0"><%= orders ? orders.length : 0 %></h3><small class="text-muted">Total</small></div></div>
+                        <div class="col-6 col-md-3"><div class="card p-3 text-center stats-card"><h3 class="mb-0 text-warning"><%= orders ? orders.filter(o => o.status === 'pending').length : 0 %></h3><small class="text-muted">Pending</small></div></div>
+                        <div class="col-6 col-md-3"><div class="card p-3 text-center stats-card"><h3 class="mb-0 text-info"><%= orders ? orders.filter(o => o.status === 'in-transit').length : 0 %></h3><small class="text-muted">In Transit</small></div></div>
+                        <div class="col-6 col-md-3"><div class="card p-3 text-center stats-card"><h3 class="mb-0 text-success"><%= orders ? orders.filter(o => o.status === 'delivered').length : 0 %></h3><small class="text-muted">Delivered</small></div></div>
+                    </div>
+
+                    <!-- Filter Buttons -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="btn-group flex-wrap" role="group">
+                                <button class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all" onclick="filterOrders('all')">All</button>
+                                <button class="btn btn-sm btn-outline-warning filter-btn" data-filter="pending" onclick="filterOrders('pending')">Pending</button>
+                                <button class="btn btn-sm btn-outline-info filter-btn" data-filter="in-transit" onclick="filterOrders('in-transit')">In Transit</button>
+                                <button class="btn btn-sm btn-outline-success filter-btn" data-filter="delivered" onclick="filterOrders('delivered')">Delivered</button>
+                                <button class="btn btn-sm btn-outline-danger filter-btn" data-filter="cancelled" onclick="filterOrders('cancelled')">Cancelled</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders List -->
+                    <div class="row">
+                        <div class="col-12">
+                            <% if (orders && orders.length > 0) { %>
+                                <div class="order-list-container">
+                                    <% orders.forEach(function(order) { %>
+                                        <div class="order-card card p-3 mb-2 status-<%= order.status %>" data-status="<%= order.status %>">
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-12 col-md-2">
+                                                    <div class="fw-bold"><i class="bi bi-person"></i> <%= order.patientName %></div>
+                                                    <small class="text-muted"><i class="bi bi-prescription"></i> <%= order.prescriptionName %></small>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <span class="status-badge status-<%= order.status %>">
+                                                        <i class="bi bi-<%= order.status === 'pending' ? 'clock' : order.status === 'in-transit' ? 'truck' : order.status === 'delivered' ? 'check-circle' : 'x-circle' %>"></i>
+                                                        <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                                                    </span>
+                                                    <br>
+                                                    <span class="priority-badge priority-<%= order.priority || 'medium' %>">
+                                                        <i class="bi bi-flag"></i> <%= (order.priority || 'medium').charAt(0).toUpperCase() + (order.priority || 'medium').slice(1) %>
+                                                    </span>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <small class="text-muted"><i class="bi bi-geo-alt"></i> <%= order.location.substring(0, 25) %><%= order.location.length > 25 ? '…' : '' %></small>
+                                                    <br>
+                                                    <small class="text-muted"><i class="bi bi-telephone"></i> <%= order.patientPhone %></small>
+                                                    <% if (order.status === 'pending' || order.status === 'in-transit') { %>
+                                                        <!-- Inline priority changer (auto-submit on change) -->
+                                                        <form action="/nurse/order/priority" method="POST" class="priority-form mt-2">
+                                                            <input type="hidden" name="orderId" value="<%= order._id %>">
+                                                            <select name="priority" class="priority-select" onchange="this.form.submit()">
+                                                                <option value="high" <%= order.priority === 'high' ? 'selected' : '' %>>High</option>
+                                                                <option value="medium" <%= order.priority === 'medium' ? 'selected' : '' %>>Medium</option>
+                                                                <option value="low" <%= order.priority === 'low' ? 'selected' : '' %>>Low</option>
+                                                            </select>
+                                                            <button type="submit" class="btn btn-sm btn-outline-secondary priority-btn" title="Update Priority"><i class="bi bi-check"></i></button>
+                                                        </form>
+                                                    <% } %>
+                                                </div>
+                                                <div class="col-12 col-md-4 text-md-end">
+                                                    <div class="action-buttons">
+                                                        <button class="btn btn-sm btn-outline-primary" onclick="viewOrder('<%= order._id %>')" title="View"><i class="bi bi-eye"></i></button>
+                                                        <% if (order.status === 'pending' || order.status === 'in-transit') { %>
+                                                            <button class="btn btn-sm btn-warning" onclick="openAssignDriverModal('<%= order._id %>', '<%= order.patientName %>', '<%= order.location %>', '<%= order.latitude %>', '<%= order.longitude %>')" title="Assign Driver"><i class="bi bi-person-plus"></i></button>
+                                                        <% } %>
+                                                        <% if (order.status === 'in-transit') { %>
+                                                            <button class="btn btn-sm btn-success" onclick="markDelivered('<%= order._id %>')" title="Mark Delivered"><i class="bi bi-check-circle"></i></button>
+                                                        <% } %>
+                                                        <% if (order.status === 'pending' || order.status === 'in-transit') { %>
+                                                            <button class="btn btn-sm btn-danger" onclick="cancelOrder('<%= order._id %>')" title="Cancel"><i class="bi bi-x-lg"></i></button>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% if (order.notes) { %>
+                                                <div class="row mt-2"><div class="col-12"><small class="text-muted"><i class="bi bi-chat"></i> <%= order.notes %></small></div></div>
+                                            <% } %>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            <% } else { %>
+                                <div class="empty-state text-center py-5">
+                                    <i class="bi bi-prescription" style="font-size:3rem; color:#dee2e6;"></i>
+                                    <h4 class="mt-3">No Orders Found</h4>
+                                    <p class="text-muted">There are no orders to manage at this time.</p>
+                                    <button class="btn btn-primary" onclick="switchTab('create')"><i class="bi bi-plus-circle"></i> Create Order</button>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CREATE ORDER -->
+                <div class="tab-pane fade" id="create" role="tabpanel">
+                    <h5 class="h6"><i class="bi bi-plus-circle"></i> Create New Order</h5>
+                    <hr>
+                    <form action="/nurse/order/create" method="POST" enctype="multipart/form-data" id="createOrderForm">
+                        <div class="mb-3">
+                            <label for="patientId" class="form-label"><i class="bi bi-person"></i> Select Patient <span class="text-danger">*</span></label>
+                            <select class="form-control" id="patientId" name="patientId" required onchange="populatePatientDetails()">
+                                <option value="">-- Select a patient --</option>
+                                <% if (patients && patients.length > 0) { %>
+                                    <% patients.forEach(function(p) { %>
+                                        <option value="<%= p._id %>" <%= prefillPatientId && prefillPatientId === p._id.toString() ? 'selected' : '' %>><%= p.name %> - <%= p.email %> (<%= p.phone %>)</option>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientName" class="form-label"><i class="bi bi-person"></i> Patient Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="patientName" name="patientName" value="<%= prefillPatientName || '' %>" placeholder="Patient name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientEmail" class="form-label"><i class="bi bi-envelope"></i> Patient Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="patientEmail" name="patientEmail" placeholder="patient@example.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientPhone" class="form-label"><i class="bi bi-telephone"></i> Patient Phone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="patientPhone" name="patientPhone" placeholder="+27 12 345 6789" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="prescriptionName" class="form-label"><i class="bi bi-capsule"></i> Prescription Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="prescriptionName" name="prescriptionName" placeholder="e.g. Amoxicillin 500mg" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="priority" class="form-label"><i class="bi bi-flag"></i> Priority</label>
+                            <select class="form-control" id="priority" name="priority">
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="prescriptionPhoto" class="form-label"><i class="bi bi-image"></i> Prescription Photo (Optional)</label>
+                            <input type="file" class="form-control" id="prescriptionPhoto" name="prescriptionPhoto" accept="image/*" onchange="previewPhoto(event)">
+                            <small class="text-muted">Upload a photo of the prescription (max 5MB)</small>
+                            <div id="photoPreview" class="mt-2" style="display: none;"><img id="previewImg" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd; padding: 5px;"><button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="removePhoto()">Remove</button></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="location" class="form-label"><i class="bi bi-geo-alt"></i> Delivery Location <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="location" name="location" placeholder="Enter delivery address" required>
+                                <button class="btn btn-outline-primary" type="button" onclick="getLocation()" title="Get Current Location"><i class="bi bi-crosshair"></i></button>
+                            </div>
+                            <div class="mt-2"><small class="text-muted" id="locationStatus"><i class="bi bi-info-circle"></i> Click the crosshair to get current location</small></div>
+                            <input type="hidden" id="latitude" name="latitude" value="">
+                            <input type="hidden" id="longitude" name="longitude" value="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label"><i class="bi bi-chat"></i> Additional Notes (Optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Any additional information…" maxlength="500"></textarea>
+                            <small class="text-muted" id="notesCount">0 / 500 characters</small>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 justify-content-end mt-3">
+                            <a href="/auth/nurse-dashboard" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Cancel</a>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Create Order</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Prescription Image Modal -->
+    <div class="modal fade" id="prescriptionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title"><i class="bi bi-image"></i> Prescription Image</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body text-center"><img id="prescriptionModalImage" src="" alt="Prescription" style="max-width: 100%; max-height: 500px; border-radius: 10px;"></div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button><a href="#" class="btn btn-primary" id="downloadPrescriptionBtn" download><i class="bi bi-download"></i> Download</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Driver Modal -->
+    <div class="modal fade" id="assignDriverModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title"><i class="bi bi-person-plus"></i> Assign Driver</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <form action="/nurse/order/assign-driver" method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" id="assignOrderId" name="orderId">
+                        <div class="mb-3"><label class="form-label"><i class="bi bi-person"></i> Patient</label><input type="text" class="form-control" id="assignPatientName" readonly></div>
+                        <div class="mb-3"><label class="form-label"><i class="bi bi-geo-alt"></i> Delivery Location</label><input type="text" class="form-control" id="assignLocation" readonly></div>
+                        <div class="mb-3">
+                            <label for="driverId" class="form-label"><i class="bi bi-truck"></i> Select Driver <span class="text-danger">*</span></label>
+                            <select class="form-control" id="driverId" name="driverId" required>
+                                <option value="">Select a driver...</option>
+                                <% if (drivers && drivers.length > 0) { %>
+                                    <% drivers.filter(d => d.status === 'active').forEach(function(driver) { %>
+                                        <option value="<%= driver._id %>"><%= driver.name %> - <%= driver.vehicleType || 'No vehicle' %></option>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                            <% if (!drivers || drivers.filter(d => d.status === 'active').length === 0) { %><small class="text-danger">No active drivers available. Please register a driver first.</small><% } %>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" <%= (!drivers || drivers.filter(d => d.status === 'active').length === 0) ? 'disabled' : '' %>><i class="bi bi-person-plus"></i> Assign Driver</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Status Form -->
+    <form id="statusForm" action="/nurse/order/status" method="POST" style="display:none;">
+        <input type="hidden" id="statusOrderId" name="orderId">
+        <input type="hidden" id="statusValue" name="status">
+    </form>
+
+    <script>
+        // Character counter for notes
+        document.getElementById('notes').addEventListener('input', function() {
+            const count = this.value.length;
+            const el = document.getElementById('notesCount');
+            el.textContent = count + ' / 500 characters';
+            el.style.color = count > 400 ? '#dc3545' : count > 300 ? '#ffc107' : '#6c757d';
+        });
+
+        // Photo preview
+        function previewPhoto(event) {
+            const reader = new FileReader();
+            reader.onload = function() { const output = document.getElementById('previewImg'); output.src = reader.result; document.getElementById('photoPreview').style.display = 'block'; };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+        function removePhoto() {
+            document.getElementById('prescriptionPhoto').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('previewImg').src = '#';
+        }
+
+        // Populate patient details
+        function populatePatientDetails() {
+            const select = document.getElementById('patientId');
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                const parts = selectedOption.text.split(' - ');
+                const name = parts[0] || '';
+                const email = parts[1] || '';
+                const phone = parts[2] ? parts[2].replace(/[()]/g, '').trim() : '';
+                document.getElementById('patientName').value = name;
+                document.getElementById('patientEmail').value = email;
+                document.getElementById('patientPhone').value = phone;
+            } else {
+                document.getElementById('patientName').value = '';
+                document.getElementById('patientEmail').value = '';
+                document.getElementById('patientPhone').value = '';
+            }
+        }
+
+        // Get location
+        function getLocation() {
+            const statusEl = document.getElementById('locationStatus');
+            statusEl.innerHTML = '<i class="bi bi-spinner bi-spin"></i> Getting your location...';
+            statusEl.style.color = '#17a2b8';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude, lng = position.coords.longitude;
+                        document.getElementById('latitude').value = lat;
+                        document.getElementById('longitude').value = lng;
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const address = data.display_name || 'Location found';
+                                document.getElementById('location').value = address;
+                                statusEl.innerHTML = '<i class="bi bi-check-circle text-success"></i> Location captured successfully!';
+                                statusEl.style.color = '#28a745';
+                            })
+                            .catch(() => {
+                                document.getElementById('location').value = `Lat: ${lat}, Lng: ${lng}`;
+                                statusEl.innerHTML = '<i class="bi bi-check-circle text-success"></i> Location captured (coordinates)';
+                                statusEl.style.color = '#28a745';
+                            });
+                    },
+                    function(error) {
+                        let errorMsg = 'Unable to get location. ';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED: errorMsg += 'Please allow location access.'; break;
+                            case error.POSITION_UNAVAILABLE: errorMsg += 'Location information is unavailable.'; break;
+                            case error.TIMEOUT: errorMsg += 'The request timed out.'; break;
+                            default: errorMsg += 'Please enter your address manually.';
+                        }
+                        statusEl.innerHTML = `<i class="bi bi-exclamation-triangle text-danger"></i> ${errorMsg}`;
+                        statusEl.style.color = '#dc3545';
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                statusEl.innerHTML = '<i class="bi bi-exclamation-triangle text-danger"></i> Geolocation is not supported. Please enter address manually.';
+                statusEl.style.color = '#dc3545';
+            }
+        }
+
+        // Filter orders
+        function filterOrders(status) {
+            const cards = document.querySelectorAll('.order-card');
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.filter === status));
+            cards.forEach(card => { card.style.display = (status === 'all' || card.dataset.status === status) ? 'block' : 'none'; });
+        }
+
+        // View order
+        function viewOrder(id) { window.location.href = `/nurse/order/${id}`; }
+
+        // View prescription image
+        function viewPrescriptionImage(imageUrl) {
+            document.getElementById('prescriptionModalImage').src = imageUrl;
+            document.getElementById('downloadPrescriptionBtn').href = imageUrl;
+            const modal = new bootstrap.Modal(document.getElementById('prescriptionModal'));
+            modal.show();
+        }
+
+        // Assign driver modal
+        function openAssignDriverModal(id, patientName, location, lat, lng) {
+            document.getElementById('assignOrderId').value = id;
+            document.getElementById('assignPatientName').value = patientName || 'Patient';
+            document.getElementById('assignLocation').value = location || 'Location not provided';
+            const modal = new bootstrap.Modal(document.getElementById('assignDriverModal'));
+            modal.show();
+        }
+
+        // Update order status
+        function updateOrderStatus(orderId, status) {
+            document.getElementById('statusOrderId').value = orderId;
+            document.getElementById('statusValue').value = status;
+            document.getElementById('statusForm').submit();
+        }
+        function markDelivered(orderId) {
+            if (confirm('Mark this order as delivered?')) updateOrderStatus(orderId, 'delivered');
+        }
+        function cancelOrder(orderId) {
+            if (confirm('Are you sure you want to cancel this order?')) updateOrderStatus(orderId, 'cancelled');
+        }
+
+        // Switch tab
+        function switchTab(tabId) {
+            const tabTrigger = document.querySelector(`#orderTabs button[data-bs-target="#${tabId}"]`);
+            if (tabTrigger) { const tab = new bootstrap.Tab(tabTrigger); tab.show(); }
+        }
+
+        // Auto-dismiss flash messages
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.alert').forEach(a => {
+                setTimeout(() => { a.style.transition = 'opacity 0.5s ease'; a.style.opacity = '0'; setTimeout(() => a.style.display = 'none', 500); }, 5000);
+            });
+        });
+    </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <!-- Socket.IO real-time order updates -->
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.2/dist/socket.io.min.js"></script>
+<script>
+  const socket = io();
+
+  socket.on('connect', () => {
+    console.log('✅ Nurse order socket connected');
+  });
+
+  socket.on('data-updated', (data) => {
+    if (data.type === 'order') {
+      console.log('📦 Order updated, reloading page...');
+      window.location.reload();
+    }
+  });
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= title %></title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- LOCAL Leaflet CSS -->
+    <link rel="stylesheet" href="/css/leaflet.css">
+    <style>
+        /* ========== GLOBAL RESET & BASE ========== */
+        * { box-sizing: border-box; }
+        body {
+            background: #f0f2f5;
+            font-size: 14px;
+            line-height: 1.5;
+            padding-bottom: 20px;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 0;
+        }
+        .navbar-brand { font-size: 1.1rem; font-weight: 600; }
+        .navbar-text { font-size: 0.85rem; }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: none;
+        }
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            padding: 6px 12px;
+        }
+        .btn-sm { font-size: 0.7rem; padding: 4px 10px; }
+        .btn-primary { background: #667eea; border: none; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-success { background: #28a745; border: none; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; border: none; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-warning { background: #ffc107; border: none; color: #856404; }
+        .btn-warning:hover { background: #e0a800; color: #856404; }
+        .btn-info { background: #17a2b8; border: none; color: white; }
+        .btn-info:hover { background: #138496; color: white; }
+        .btn-outline-secondary { color: #667eea; border-color: #667eea; }
+        .btn-outline-secondary:hover { background: #667eea; color: white; }
+        .alert { border-radius: 10px; font-size: 0.85rem; padding: 10px 15px; }
+        .alert-info { background: #e3f2fd; border: none; color: #0d47a1; }
+        .alert-info h4 { font-size: 1rem; }
+        .alert-info p { font-size: 0.85rem; margin-bottom: 0; }
+
+        /* ========== MAP ========== */
+        #map {
+            height: 350px;
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 8px;
+            z-index: 1;
+        }
+        .leaflet-container { z-index: 1; }
+
+        /* ========== STATUS BADGE ========== */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-pending { background: #ffc107; color: #856404; }
+        .status-in-transit { background: #17a2b8; color: white; }
+        .status-delivered { background: #28a745; color: white; }
+        .status-cancelled { background: #dc3545; color: white; }
+
+        /* ========== PRIORITY BADGE ========== */
+        .priority-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            letter-spacing: 0.2px;
+            display: inline-block;
+            margin-left: 5px;
+        }
+        .priority-high { background: #dc3545; color: white; }
+        .priority-medium { background: #ffc107; color: #856404; }
+        .priority-low { background: #17a2b8; color: white; }
+
+        /* ========== NAVIGATION CONTROLS ========== */
+        .navigation-controls {
+            background: white;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-top: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .navigation-controls .btn { font-size: 0.7rem; padding: 4px 10px; }
+        .gps-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+        .gps-status.active { background: #28a745; color: white; }
+        .gps-status.inactive { background: #dc3545; color: white; }
+        .gps-status.searching { background: #ffc107; color: #856404; }
+
+        /* ========== QUICK ACTIONS ========== */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .quick-actions .card {
+            text-align: center;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            border-radius: 10px;
+        }
+        .quick-actions .card:active { transform: scale(0.95); }
+        .quick-actions .card i { font-size: 1.5rem; color: #667eea; margin-bottom: 4px; }
+        .quick-actions .card h6 { font-size: 0.75rem; margin-bottom: 2px; font-weight: 600; }
+        .quick-actions .card p { font-size: 0.65rem; color: #666; margin-bottom: 0; }
+
+        /* ========== DELIVERY INFO ========== */
+        .delivery-info {
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+        }
+        .delivery-info strong { font-size: 0.8rem; }
+
+        /* ========== ROUTE INFO ========== */
+        .route-info {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            border-left: 3px solid #28a745;
+            font-size: 0.8rem;
+        }
+        .route-info .row { font-size: 0.75rem; }
+
+        /* ========== COLUMN HEADERS ========== */
+        .column-header {
+            font-weight: 600;
+            padding: 8px 0;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+        .column-header .count-badge {
+            float: right;
+            font-size: 0.7rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        /* ========== EMPTY STATES ========== */
+        .empty-column { text-align: center; padding: 20px 10px; color: #999; }
+        .empty-column i { font-size: 2rem; display: block; margin-bottom: 8px; }
+        .empty-column p { font-size: 0.8rem; margin-bottom: 0; }
+        .empty-state { text-align: center; padding: 30px 20px; }
+        .empty-state i { font-size: 3rem; color: #dee2e6; }
+        .empty-state h4 { font-size: 1rem; margin-top: 10px; }
+        .empty-state p { font-size: 0.85rem; color: #999; }
+
+        /* ========== DRIVER INFO GRID ========== */
+        .driver-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px 15px;
+            font-size: 0.8rem;
+        }
+        .driver-info-grid p { margin-bottom: 3px; }
+        .driver-info-grid strong { font-size: 0.75rem; }
+
+        /* ========== VOICE INDICATOR ========== */
+        .voice-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .voice-indicator.active { background: #28a745; animation: pulse 1s ease-in-out infinite; }
+        .voice-indicator.inactive { background: #dc3545; }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ========== RESPONSIVE TWEAKS ========== */
+        @media (max-width: 576px) {
+            body { font-size: 13px; }
+            .container { padding-left: 10px; padding-right: 10px; }
+            .card { border-radius: 10px; }
+            .card .p-4 { padding: 12px !important; }
+            .card .p-3 { padding: 10px !important; }
+            .order-card { padding: 8px 10px !important; margin-bottom: 6px !important; }
+            .order-card .fw-bold { font-size: 0.8rem; }
+            .order-card small { font-size: 0.65rem; }
+            .order-card .action-buttons .btn { font-size: 0.6rem; padding: 2px 6px; min-width: 50px; }
+            .order-card .status-badge { font-size: 0.6rem; padding: 2px 8px; }
+            .priority-badge { font-size: 0.6rem; padding: 2px 8px; }
+            #map { height: 250px; }
+            .quick-actions { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+            .quick-actions .card { padding: 8px 4px; }
+            .quick-actions .card i { font-size: 1.2rem; }
+            .quick-actions .card h6 { font-size: 0.65rem; }
+            .quick-actions .card p { font-size: 0.55rem; }
+            .in-transit-column {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+                padding-right: 0;
+                padding-bottom: 15px;
+                margin-bottom: 15px;
+            }
+            .delivered-column { padding-left: 0; }
+            .column-header { font-size: 0.8rem; }
+            .navigation-controls .btn { font-size: 0.6rem; padding: 3px 8px; }
+            .navigation-controls .row { flex-direction: column; align-items: center; gap: 5px; }
+            .navigation-controls .col-md-4 { width: 100%; text-align: center; }
+            .gps-status { font-size: 0.7rem; padding: 3px 8px; }
+            .alert-info h4 { font-size: 0.9rem; }
+            .alert-info p { font-size: 0.75rem; }
+            .compass-container { width: 32px; height: 32px; bottom: 10px; right: 10px; }
+            .compass-icon { font-size: 16px; }
+            .delivery-info { font-size: 0.7rem; padding: 6px 10px; }
+            .delivery-info strong { font-size: 0.7rem; }
+            .route-info { font-size: 0.7rem; padding: 6px 10px; }
+            .route-info .row { font-size: 0.65rem; }
+            .order-list-container { max-height: 250px; }
+            .voice-btn { font-size: 0.6rem !important; padding: 3px 6px !important; }
+            .driver-info-grid { grid-template-columns: 1fr; gap: 2px; }
+        }
+        @media (max-width: 400px) {
+            .quick-actions { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+            .quick-actions .card { padding: 6px 2px; }
+            .quick-actions .card i { font-size: 1rem; }
+            .quick-actions .card h6 { font-size: 0.55rem; }
+            .quick-actions .card p { font-size: 0.5rem; }
+            .order-card .action-buttons .btn { font-size: 0.55rem; padding: 2px 5px; min-width: 40px; }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container { padding-left: 15px; padding-right: 15px; }
+            .card .p-4 { padding: 20px !important; }
+            .card .p-3 { padding: 16px !important; }
+            #map { height: 300px; }
+        }
+        @media (min-width: 992px) {
+            .container { padding-left: 30px; padding-right: 30px; }
+            .card .p-4 { padding: 24px !important; }
+            .card .p-3 { padding: 20px !important; }
+            #map { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-truck"></i> Driver Portal</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item me-2">
+                        <span class="navbar-text text-white d-none d-sm-inline">
+                            <i class="bi bi-person-circle"></i> <%= driver.name %>
+                        </span>
+                    </li>
+                    <li class="nav-item me-2">
+                        <span class="badge bg-light text-dark"><%= driver.status %></span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/driver/logout" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-2 mt-sm-3">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info d-flex align-items-center">
+                    <i class="bi bi-truck me-2" style="font-size: 1.2rem;"></i>
+                    <div>
+                        <h4 class="mb-0"><%= driver.name %></h4>
+                        <p class="mb-0">Manage your deliveries with GPS navigation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--------- Flash Messages -------------->
+
+        <%- include('../partials/flash') %>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="/driver/dashboard" class="card text-decoration-none">
+                <i class="bi bi-house"></i>
+                <h6>Dashboard</h6>
+                <p>Home</p>
+            </a>
+            <a href="/driver/change-password" class="card text-decoration-none">
+                <i class="bi bi-key"></i>
+                <h6>Password</h6>
+                <p>Change</p>
+            </a>
+            <a href="/driver/logout" class="card text-decoration-none">
+                <i class="bi bi-box-arrow-right"></i>
+                <h6>Logout</h6>
+                <p>Sign out</p>
+            </a>
+        </div>
+
+        <!-- GPS Status -->
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="navigation-controls">
+                    <div class="row align-items-center gy-2">
+                        <div class="col-4 col-sm-3 text-center text-sm-start">
+                            <span class="gps-status" id="gpsStatus">
+                                <i class="bi bi-satellite"></i> <span id="gpsStatusText">Searching...</span>
+                            </span>
+                            <br>
+                            <small class="text-muted" id="accuracyDisplay">Accuracy: --</small>
+                        </div>
+                        <div class="col-4 col-sm-4 text-center">
+                            <button class="btn btn-primary btn-sm w-100" onclick="getCurrentLocation()">
+                                <i class="bi bi-crosshair"></i> My Location
+                            </button>
+                        </div>
+                        <div class="col-4 col-sm-5 text-center text-sm-end">
+                            <button class="btn btn-info btn-sm voice-btn" id="voiceToggleBtn" onclick="toggleVoice()">
+                                <span class="voice-indicator active" id="voiceIndicator"></span>
+                                <i class="bi bi-volume-up"></i> <span id="voiceStatus">Voice</span>
+                            </button>
+                            <span id="locationCoords" class="small d-block d-sm-inline">Lat: --, Lng: --</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card p-2 p-sm-3" style="position: relative;">
+                    <h6 class="mb-1"><i class="bi bi-map"></i> Navigation Map</h6>
+                    <div id="map"></div>
+                    <button class="my-location-btn" onclick="getCurrentLocation()" title="Go to my location">
+                        <i class="bi bi-crosshair" style="color: #667eea;"></i> My Location
+                    </button>
+                    <div class="compass-container" onclick="resetMapView()" title="Reset View">
+                        <i class="bi bi-compass compass-icon"></i>
+                    </div>
+                    <div class="row mt-2 g-2">
+                        <div class="col-6">
+                            <div class="delivery-info">
+                                <strong><i class="bi bi-geo-alt"></i> You:</strong>
+                                <span id="currentLocation" class="small d-block">Getting location...</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="delivery-info">
+                                <strong><i class="bi bi-geo-alt-fill"></i> Destination:</strong>
+                                <span id="deliveryLocation" class="small d-block">Select an order</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="route-info" id="routeInfo" style="display:none;">
+                        <div class="row text-center g-0">
+                            <div class="col-4">
+                                <i class="bi bi-arrow-right"></i> <span id="distance">-</span>
+                            </div>
+                            <div class="col-4">
+                                <i class="bi bi-clock"></i> <span id="duration">-</span>
+                            </div>
+                            <div class="col-4">
+                                <i class="bi bi-compass"></i> <span id="direction">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deliveries -->
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card p-2 p-sm-3 deliveries-section">
+                    <div class="deliveries-header">
+                        <h6 class="mb-0"><i class="bi bi-prescription"></i> My Deliveries</h6>
+                        <span class="badge bg-info">Total: <%= orders ? orders.length : 0 %></span>
+                    </div>
+                    <% if (orders && orders.length > 0) { %>
+                        <div class="row g-2">
+                            <div class="col-12 col-sm-6 in-transit-column">
+                                <div class="column-header">
+                                    <i class="bi bi-truck text-info"></i> In Transit
+                                    <span class="count-badge badge bg-info">
+                                        <%= orders.filter(o => o.status === 'in-transit').length %>
+                                    </span>
+                                </div>
+                                <% const inTransitOrders = orders.filter(o => o.status === 'in-transit'); %>
+                                <% if (inTransitOrders.length > 0) { %>
+                                    <div class="order-list-container">
+                                        <% inTransitOrders.forEach(function(order) { %>
+                                            <div class="order-card status-<%= order.status %>" data-status="<%= order.status %>">
+                                                <div class="fw-bold"><i class="bi bi-person"></i> <%= order.patientName %></div>
+                                                <small class="text-muted"><i class="bi bi-prescription"></i> <%= order.prescriptionName %></small>
+                                                <br>
+                                                <span class="status-badge status-<%= order.status %>"><i class="bi bi-truck"></i> In Transit</span>
+                                                <span class="priority-badge priority-<%= order.priority || 'medium' %>">
+                                                    <i class="bi bi-flag"></i> <%= (order.priority || 'medium').charAt(0).toUpperCase() + (order.priority || 'medium').slice(1) %>
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-geo-alt"></i>
+                                                    <span class="location-link" onclick="showLocationOnMap('<%= order.latitude %>', '<%= order.longitude %>', '<%= order.location %>')">
+                                                        <%= order.location.substring(0, 20) %><%= order.location.length > 20 ? '...' : '' %>
+                                                    </span>
+                                                </small>
+                                                <br>
+                                                <small class="text-muted"><i class="bi bi-telephone"></i> <%= order.patientPhone %></small>
+                                                <div class="action-buttons">
+                                                    <button class="btn btn-success btn-sm" onclick="navigateToDestination('<%= order._id %>', '<%= order.latitude %>', '<%= order.longitude %>', '<%= order.location %>', '<%= order.patientName %>', '<%= order.patientPhone %>')">
+                                                        <i class="bi bi-compass"></i> Navigate
+                                                    </button>
+                                                    <button class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation(); viewOrder('<%= order._id %>')">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </button>
+                                                    <button class="btn btn-info btn-sm" onclick="event.stopPropagation(); markDelivered('<%= order._id %>')">
+                                                        <i class="bi bi-check-circle"></i> Deliver
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="empty-column">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        <p>No orders in transit</p>
+                                    </div>
+                                <% } %>
+                            </div>
+                            <div class="col-12 col-sm-6 delivered-column">
+                                <div class="column-header">
+                                    <i class="bi bi-check-circle text-success"></i> Delivered
+                                    <span class="count-badge badge bg-success">
+                                        <%= orders.filter(o => o.status === 'delivered').length %>
+                                    </span>
+                                </div>
+                                <% const deliveredOrders = orders.filter(o => o.status === 'delivered'); %>
+                                <% if (deliveredOrders.length > 0) { %>
+                                    <div class="order-list-container">
+                                        <% deliveredOrders.forEach(function(order) { %>
+                                            <div class="order-card delivered-card status-<%= order.status %>" data-status="<%= order.status %>">
+                                                <div class="fw-bold"><i class="bi bi-person"></i> <%= order.patientName %></div>
+                                                <small class="text-muted"><i class="bi bi-prescription"></i> <%= order.prescriptionName %></small>
+                                                <br>
+                                                <span class="status-badge status-<%= order.status %>"><i class="bi bi-check-circle"></i> Delivered</span>
+                                                <span class="priority-badge priority-<%= order.priority || 'medium' %>">
+                                                    <i class="bi bi-flag"></i> <%= (order.priority || 'medium').charAt(0).toUpperCase() + (order.priority || 'medium').slice(1) %>
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-geo-alt"></i>
+                                                    <span class="location-link"><%= order.location.substring(0, 20) %><%= order.location.length > 20 ? '...' : '' %></span>
+                                                </small>
+                                                <br>
+                                                <small class="text-muted"><i class="bi bi-telephone"></i> <%= order.patientPhone %></small>
+                                                <div class="action-buttons">
+                                                    <button class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation(); viewOrder('<%= order._id %>')">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </button>
+                                                    <span class="badge bg-success ms-1"><i class="bi bi-check-circle"></i> Done</span>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="empty-column">
+                                        <i class="bi bi-box-seam text-muted"></i>
+                                        <p>No delivered orders</p>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <i class="bi bi-prescription"></i>
+                            <h4>No Orders Assigned</h4>
+                            <p>You have no deliveries assigned at this time.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Driver Information -->
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card p-2 p-sm-3">
+                    <h6 class="mb-2"><i class="bi bi-person-badge"></i> Your Information</h6>
+                    <div class="driver-info-grid">
+                        <p><strong>Name:</strong> <%= driver.name %></p>
+                        <p><strong>Email:</strong> <%= driver.email %></p>
+                        <p><strong>Phone:</strong> <%= driver.phone %></p>
+                        <p><strong>Vehicle:</strong> <%= driver.vehicleType || 'Not specified' %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS ========== -->
+    <!-- LOCAL Leaflet JS -->
+    <script src="/js/leaflet.js"></script>
+    <!-- Socket.io Client (single load) -->
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.2/dist/socket.io.min.js"></script>
+
+    <script>
+        // ========== SOCKET.IO (single declaration) ==========
+        const socket = io();
+
+        // ========== MAP SETUP ==========
+        let map;
+        let currentMarker;
+        let destinationMarker;
+        let routeLayer = null;
+        let watchId = null;
+        let currentLat = -22.5609;
+        let currentLng = 17.0658;
+        let destLat = null;
+        let destLng = null;
+        let isNavigating = false;
+        let voiceEnabled = true;
+        let announcementCount = 0;
+        let currentAccuracy = 0;
+        let locationFound = false;
+
+        // ========== LOCATION SENDER (throttled + smooth) ==========
+        let locationInterval = null;
+        let lastEmitTime = 0;
+        const EMIT_INTERVAL_MS = 500;
+
+        function startLocationUpdates() {
+            if (!navigator.geolocation) {
+                console.warn('Geolocation not supported');
+                return;
+            }
+
+            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const now = Date.now();
+                    if (now - lastEmitTime < EMIT_INTERVAL_MS) return;
+                    lastEmitTime = now;
+
+                    const data = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        speed: position.coords.speed || 0,
+                        timestamp: now
+                    };
+                    socket.emit('driver-location-update', data);
+
+                    if (typeof currentMarker !== 'undefined' && currentMarker) {
+                        moveMarkerSmoothly(
+                            currentMarker,
+                            data.latitude,
+                            data.longitude,
+                            450
+                        );
+                    }
+                },
+                (err) => console.warn('GPS error:', err.message),
+                {
+                    enableHighAccuracy: true,
+                    timeout: 1000,
+                    maximumAge: 0
+                }
+            );
+
+            console.log('📍 watchPosition started (throttled to ' + EMIT_INTERVAL_MS + 'ms)');
+        }
+
+        // ========== SMOOTH MARKER ANIMATION ==========
+        function moveMarkerSmoothly(marker, newLat, newLng, duration = 450) {
+            const start = marker.getLatLng();
+            const end = L.latLng(newLat, newLng);
+            const startTime = performance.now();
+
+            if (start.distanceTo(end) < 1) {
+                marker.setLatLng(end);
+                return;
+            }
+
+            function step(now) {
+                const t = Math.min((now - startTime) / duration, 1);
+                const eased = 1 - Math.pow(1 - t, 3);
+                const lat = start.lat + (end.lat - start.lat) * eased;
+                const lng = start.lng + (end.lng - start.lng) * eased;
+                marker.setLatLng([lat, lng]);
+                if (t < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        // ========== MAP INITIALIZATION ==========
+        function initMap() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        currentLat = lat;
+                        currentLng = lng;
+                        setupMap(lat, lng);
+                        document.getElementById('currentLocation').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                        document.getElementById('locationCoords').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                        document.getElementById('gpsStatusText').textContent = 'Active';
+                        document.getElementById('gpsStatus').className = 'gps-status active';
+                    },
+                    function(error) {
+                        console.warn('Could not get initial location, using default:', error);
+                        setupMap(-22.5609, 17.0658);
+                        document.getElementById('currentLocation').textContent = '📍 Click "My Location" to get GPS';
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                setupMap(-22.5609, 17.0658);
+                document.getElementById('currentLocation').textContent = '📍 GPS not supported';
+            }
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => {
+                    window.speechSynthesis.getVoices();
+                };
+            }
+        }
+
+        function setupMap(lat, lng) {
+            const tileUrl = '/tiles/{z}/{x}/{y}.png';
+
+            map = L.map('map', {
+                center: [lat, lng],
+                zoom: 14,
+                zoomControl: true,
+                attributionControl: true
+            });
+
+            L.tileLayer(tileUrl, {
+                attribution: 'Offline Map',
+                maxZoom: 19,
+                maxNativeZoom: 16,
+                errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8//8/AwAI/AL+fH5B4AAAAABJRU5ErkJggg=='
+            }).addTo(map);
+
+            const driverIcon = L.divIcon({
+                html: '<i class="bi bi-truck" style="font-size: 28px; color: #667eea;"></i>',
+                iconSize: [28, 28],
+                className: 'custom-icon'
+            });
+
+            currentMarker = L.marker([lat, lng], { icon: driverIcon }).addTo(map);
+            currentMarker.bindPopup('📍 Your Location').openPopup();
+
+            L.circle([lat, lng], {
+                color: '#667eea',
+                fillColor: '#667eea',
+                fillOpacity: 0.1,
+                radius: 50
+            }).addTo(map);
+
+            setTimeout(() => { map.invalidateSize(); }, 500);
+
+            startGPSWatch();
+            console.log('🗺️ Map initialized with offline tiles – no external requests.');
+        }
+
+        function startGPSWatch() {
+            if (navigator.geolocation) {
+                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+                watchId = navigator.geolocation.watchPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+                        const speed = position.coords.speed || 0;
+                        currentLat = lat;
+                        currentLng = lng;
+                        currentAccuracy = accuracy;
+                        currentMarker.setLatLng([lat, lng]);
+                        currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`).openPopup();
+                        map.eachLayer(function(layer) {
+                            if (layer instanceof L.Circle) map.removeLayer(layer);
+                        });
+                        L.circle([lat, lng], {
+                            color: '#667eea',
+                            fillColor: '#667eea',
+                            fillOpacity: 0.1,
+                            radius: accuracy
+                        }).addTo(map);
+                        document.getElementById('currentLocation').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                        document.getElementById('locationCoords').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                        document.getElementById('accuracyDisplay').textContent = `Accuracy: ${Math.round(accuracy)}m`;
+                        let statusText = '';
+                        if (accuracy < 20) statusText = 'Excellent';
+                        else if (accuracy < 50) statusText = 'Good';
+                        else if (accuracy < 100) statusText = 'Fair';
+                        else statusText = 'Poor';
+                        document.getElementById('gpsStatusText').textContent = statusText;
+                        document.getElementById('gpsStatus').className = 'gps-status active';
+
+                        if (isNavigating && destLat && destLng) {
+                            const distance = calculateDistance(lat, lng, destLat, destLng);
+                            showRoute(lat, lng, destLat, destLng);
+                            updateDirection(lat, lng, destLat, destLng);
+                            if (voiceEnabled) {
+                                if (distance < 1 && distance > 0.1 && announcementCount % 5 === 0) {
+                                    speakText(`You are ${Math.round(distance * 1000)} meters from your destination`);
+                                } else if (distance <= 0.1 && distance > 0.01) {
+                                    speakText(`You have arrived at your destination`);
+                                } else if (distance > 1 && Math.round(distance) % 5 === 0 && announcementCount % 10 === 0) {
+                                    speakText(`You are ${Math.round(distance)} kilometers from your destination`);
+                                }
+                                announcementCount++;
+                            }
+                        }
+                        if (isNavigating) map.setView([lat, lng], 17);
+                    },
+                    function(error) {
+                        console.error('GPS watch error:', error);
+                        document.getElementById('gpsStatus').className = 'gps-status inactive';
+                        document.getElementById('gpsStatusText').textContent = 'Error';
+                    },
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            }
+        }
+
+        // ========== VOICE & NAVIGATION FUNCTIONS ==========
+        function speakText(text) {
+            if (!voiceEnabled) return;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                utterance.volume = 1;
+                const voices = window.speechSynthesis.getVoices();
+                const femaleVoice = voices.find(voice =>
+                    voice.name.includes('Google UK') || voice.name.includes('Samantha') || voice.name.includes('Female')
+                );
+                if (femaleVoice) utterance.voice = femaleVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            const btn = document.getElementById('voiceToggleBtn');
+            const indicator = document.getElementById('voiceIndicator');
+            const status = document.getElementById('voiceStatus');
+            if (voiceEnabled) {
+                indicator.className = 'voice-indicator active';
+                status.textContent = 'Voice';
+                speakText('Voice navigation enabled');
+            } else {
+                indicator.className = 'voice-indicator inactive';
+                status.textContent = 'Mute';
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function getCurrentLocation() {
+            const statusEl = document.getElementById('gpsStatus');
+            const statusText = document.getElementById('gpsStatusText');
+            statusEl.className = 'gps-status searching';
+            statusText.textContent = 'Getting location...';
+            document.getElementById('currentLocation').textContent = '📍 Getting location...';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+                        map.setView([lat, lng], 17);
+                        currentMarker.setLatLng([lat, lng]);
+                        currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`).openPopup();
+                        currentLat = lat;
+                        currentLng = lng;
+                        locationFound = true;
+                        document.getElementById('currentLocation').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                        document.getElementById('locationCoords').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                        document.getElementById('accuracyDisplay').textContent = `Accuracy: ${Math.round(accuracy)}m`;
+                        statusEl.className = 'gps-status active';
+                        statusText.textContent = 'Active';
+                        map.eachLayer(function(layer) {
+                            if (layer instanceof L.Circle) map.removeLayer(layer);
+                        });
+                        L.circle([lat, lng], {
+                            color: '#667eea',
+                            fillColor: '#667eea',
+                            fillOpacity: 0.1,
+                            radius: accuracy
+                        }).addTo(map);
+                        if (voiceEnabled) speakText(`Location found. Accuracy ${Math.round(accuracy)} meters.`);
+                        if (isNavigating && destLat && destLng) {
+                            showRoute(lat, lng, destLat, destLng);
+                            updateDirection(lat, lng, destLat, destLng);
+                        }
+                    },
+                    function(error) {
+                        let errorMsg = 'Unable to get location. ';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED: errorMsg += 'Please allow location access.'; break;
+                            case error.POSITION_UNAVAILABLE: errorMsg += 'Location information is unavailable.'; break;
+                            case error.TIMEOUT: errorMsg += 'The request timed out.'; break;
+                            default: errorMsg += 'Please try again.';
+                        }
+                        statusEl.className = 'gps-status inactive';
+                        statusText.textContent = 'Error';
+                        document.getElementById('currentLocation').textContent = '📍 ' + errorMsg;
+                        alert('⚠️ ' + errorMsg);
+                    },
+                    { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
+                );
+            } else {
+                alert('⚠️ Geolocation is not supported by your browser.');
+            }
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function navigateToDestination(orderId, lat, lng, location, patientName, patientPhone) {
+            const latNum = parseFloat(lat);
+            const lngNum = parseFloat(lng);
+            if (!latNum || !lngNum || isNaN(latNum) || isNaN(lngNum)) {
+                alert('No location coordinates available for this order.');
+                return;
+            }
+            destLat = latNum;
+            destLng = lngNum;
+            isNavigating = true;
+            announcementCount = 0;
+            document.getElementById('deliveryLocation').textContent = `${location}`;
+            if (destinationMarker) map.removeLayer(destinationMarker);
+            const destIcon = L.divIcon({
+                html: '<i class="bi bi-geo-alt-fill" style="font-size: 32px; color: #dc3545;"></i>',
+                iconSize: [32, 32],
+                className: 'custom-icon'
+            });
+            destinationMarker = L.marker([latNum, lngNum], { icon: destIcon }).addTo(map);
+            destinationMarker.bindPopup(`<strong>📍 ${patientName}</strong><br>${location}`).openPopup();
+            const distance = calculateDistance(currentLat, currentLng, latNum, lngNum);
+            showRoute(currentLat, currentLng, latNum, lngNum);
+            updateDirection(currentLat, currentLng, latNum, lngNum);
+            const bounds = L.latLngBounds([[currentLat, currentLng], [latNum, lngNum]]);
+            map.fitBounds(bounds, { padding: [30, 30] });
+            document.getElementById('routeInfo').style.display = 'block';
+            if (voiceEnabled) speakText(`Navigating to ${patientName}. Distance ${distance.toFixed(1)} kilometers.`);
+        }
+
+        function showRoute(startLat, startLng, endLat, endLng) {
+            const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                        const route = data.routes[0];
+                        const geometry = route.geometry;
+                        const coordinates = geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                        if (routeLayer) map.removeLayer(routeLayer);
+                        routeLayer = L.polyline(coordinates, {
+                            color: '#667eea',
+                            weight: 4,
+                            opacity: 0.8
+                        }).addTo(map);
+                        const distance = route.distance / 1000;
+                        const duration = route.duration / 60;
+                        document.getElementById('distance').textContent = distance.toFixed(1) + ' km';
+                        if (duration < 60) {
+                            document.getElementById('duration').textContent = Math.round(duration) + ' min';
+                        } else {
+                            const hours = Math.floor(duration / 60);
+                            const mins = Math.round(duration % 60);
+                            document.getElementById('duration').textContent = hours + 'h ' + mins + 'm';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Route error:', error);
+                    document.getElementById('distance').textContent = 'Route unavailable';
+                    document.getElementById('duration').textContent = '-';
+                });
+        }
+
+        function updateDirection(startLat, startLng, endLat, endLng) {
+            const dLat = endLat - startLat;
+            const dLng = endLng - startLng;
+            let angle = Math.atan2(dLng, dLat) * 180 / Math.PI;
+            angle = (angle + 360) % 360;
+            const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+            const index = Math.round(angle / 45) % 8;
+            document.getElementById('direction').textContent = directions[index] + ` (${Math.round(angle)}°)`;
+        }
+
+        function showLocationOnMap(lat, lng, address) {
+            if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
+                window.open(`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=15`, '_blank');
+            } else if (address) {
+                window.open(`https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`, '_blank');
+            }
+        }
+
+        function resetMapView() {
+            if (currentLat && currentLng) {
+                map.setView([currentLat, currentLng], 14);
+                currentMarker.bindPopup('📍 Your Location').openPopup();
+            }
+        }
+
+        function viewOrder(id) {
+            fetch(`/driver/order/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const order = data.order;
+                        let msg = `Patient: ${order.patientName}\n`;
+                        msg += `Phone: ${order.patientPhone}\n`;
+                        msg += `Location: ${order.location}\n`;
+                        msg += `Status: ${order.status}`;
+                        if (order.deliveryDate) {
+                            msg += `\nDelivered: ${new Date(order.deliveryDate).toLocaleString()}`;
+                        }
+                        alert(msg);
+                    } else {
+                        alert('Order not found');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to load order details');
+                });
+        }
+
+        function updateOrderStatus(orderId, status) {
+            document.getElementById('statusOrderId').value = orderId;
+            document.getElementById('statusValue').value = status;
+            document.getElementById('statusForm').submit();
+        }
+
+        function markDelivered(orderId) {
+            if (confirm('Mark this order as delivered?')) {
+                updateOrderStatus(orderId, 'delivered');
+                if (voiceEnabled) speakText('Order marked as delivered');
+            }
+        }
+
+        // ========== SOCKET LISTENER (single, reuses const socket above) ==========
+        socket.on('data-updated', (data) => {
+            if (data.type === 'order') {
+                console.log('📦 Order updated, refreshing page...');
+                window.location.reload();
+            }
+        });
+
+        // ========== INIT ==========
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.alert').forEach(a => {
+                setTimeout(() => {
+                    a.style.transition = 'opacity 0.5s ease';
+                    a.style.opacity = '0';
+                    setTimeout(() => a.style.display = 'none', 500);
+                }, 5000);
+            });
+
+            initMap();
+            startLocationUpdates();
+
+            window.addEventListener('beforeunload', function () {
+                if (locationInterval) clearInterval(locationInterval);
+            });
+        });
+    </script>
+
+    <!-- Hidden form for status updates -->
+    <form id="statusForm" action="/driver/order/status" method="POST" style="display:none;">
+        <input type="hidden" id="statusOrderId" name="orderId">
+        <input type="hidden" id="statusValue" name="status">
+    </form>
+
+    <!-- Bootstrap JS bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

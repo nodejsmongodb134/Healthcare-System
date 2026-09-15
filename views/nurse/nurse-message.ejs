@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* ========== GLOBAL ========== */
+        body {
+            background: #f0f2f5;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 0;
+        }
+        .navbar-brand {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .navbar-text {
+            font-size: 0.85rem;
+        }
+        .btn-outline-light {
+            border-color: rgba(255,255,255,0.5);
+            color: white;
+        }
+        .btn-outline-light:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            border: none;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: #667eea;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-success {
+            background: #28a745;
+            border: none;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-danger {
+            background: #dc3545;
+            border: none;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-outline-secondary {
+            color: #667eea;
+            border-color: #667eea;
+        }
+        .btn-outline-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        .alert {
+            animation: slideDown 0.5s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+        .form-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+
+        /* ========== STATUS BADGE ========== */
+        .status-badge {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-unread { background: #dc3545; color: white; }
+        .status-read { background: #17a2b8; color: white; }
+        .status-replied { background: #28a745; color: white; }
+
+        /* ========== MESSAGE CARD ========== */
+        .message-card {
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+            background: white;
+        }
+        .message-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .message-card.unread { border-left-color: #dc3545; background: #fff5f5; }
+        .message-card.read { border-left-color: #17a2b8; }
+        .message-card.replied { border-left-color: #28a745; }
+
+        /* ========== SCROLLBAR ========== */
+        .message-list-container {
+            max-height: 600px;
+            overflow-y: auto;
+            border-radius: 10px;
+        }
+        .message-list-container::-webkit-scrollbar { width: 6px; }
+        .message-list-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .message-list-container::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+        .message-list-container::-webkit-scrollbar-thumb:hover { background: #5a67d8; }
+
+        /* ========== FILTER BUTTONS ========== */
+        .filter-btn {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .nav-tabs .nav-link {
+            color: #4a5568;
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            background: transparent;
+        }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            color: #dee2e6;
+        }
+
+        /* ========== MODAL ========== */
+        .modal-content { border-radius: 15px; }
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        .modal-header .btn-close { filter: brightness(0) invert(1); }
+
+        /* ========== MESSAGE CONTENT ========== */
+        .message-content {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .reply-content {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .image-thumb {
+            max-width: 50px;
+            max-height: 50px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .image-thumb:hover {
+            transform: scale(1.1);
+        }
+        .modal-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+        .char-counter {
+            font-size: 0.85rem;
+        }
+        .char-counter.success { color: #28a745; }
+        .char-counter.warning { color: #ffc107; }
+        .char-counter.danger { color: #dc3545; }
+
+        /* ========== BADGE UNREAD ANIMATION ========== */
+        .badge-unread {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* ========== RESPONSIVE TWEAKS ========== */
+        @media (max-width: 575.98px) {
+            body { font-size: 13px; }
+            .container { padding-left: 12px; padding-right: 12px; }
+            .navbar-brand { font-size: 0.95rem; }
+            .navbar-text { font-size: 0.75rem; }
+            .card { border-radius: 10px; }
+            .card .p-3 { padding: 12px !important; }
+            .card .p-4 { padding: 16px !important; }
+            .btn { font-size: 0.75rem; padding: 6px 12px; }
+            .btn-sm { font-size: 0.65rem; padding: 4px 8px; }
+            .status-badge { font-size: 0.7rem; padding: 3px 8px; }
+            .filter-btn { font-size: 0.7rem; padding: 3px 8px; }
+            .message-card .row > div { text-align: left; margin-bottom: 4px; }
+            .message-card .col-md-3.text-end { text-align: left !important; }
+            .message-card .btn-group { flex-wrap: wrap; gap: 4px; }
+            .message-card .btn-group .btn { flex: 1; min-width: 50px; }
+            .stats-card h3 { font-size: 1.4rem; }
+            .message-list-container { max-height: 400px; }
+            .modal-dialog { margin: 10px; }
+            .modal-body .form-control { font-size: 0.9rem; }
+            .modal-footer .btn { font-size: 0.75rem; padding: 5px 12px; }
+            .alert-info h4 { font-size: 1rem; }
+            .alert-info p { font-size: 0.85rem; margin-bottom: 0; }
+            .btn-group.flex-wrap { gap: 4px; }
+            .btn-group.flex-wrap .btn { margin: 2px; }
+            .message-content, .reply-content { padding: 10px; }
+            .image-thumb { max-width: 35px; max-height: 35px; }
+            .modal-image { max-height: 300px; }
+            .nav-tabs .nav-link { font-size: 0.75rem; padding: 0.4rem 0.7rem; }
+        }
+
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container { padding-left: 20px; padding-right: 20px; }
+            .card .p-3 { padding: 16px !important; }
+            .card .p-4 { padding: 24px !important; }
+            .btn { font-size: 0.8rem; padding: 6px 14px; }
+            .stats-card h3 { font-size: 1.8rem; }
+        }
+
+        @media (min-width: 992px) {
+            .container { padding-left: 40px; padding-right: 40px; }
+            .card .p-3 { padding: 20px !important; }
+            .card .p-4 { padding: 32px !important; }
+            .btn { font-size: 0.85rem; padding: 8px 20px; }
+            .stats-card h3 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVBAR with responsive toggler ========== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <span class="navbar-text text-white me-3">
+                            <i class="bi bi-person-circle"></i> Welcome, <%= user.name %>
+                            <span class="badge bg-light text-dark ms-2"><%= user.role %></span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/nurse-dashboard" class="btn btn-outline-light btn-sm me-2">
+                            <i class="bi bi-arrow-left"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="alert alert-info shadow-sm">
+            <h4 class="h5"><i class="bi bi-envelope"></i> Patient Messages</h4>
+            <p class="mb-0">View, reply, and send messages to patients.</p>
+        </div>
+
+        <!--------- Flash Messages -------------->
+
+        <%- include('../partials/flash') %>
+
+
+        <!-- Stats Cards -->
+        <div class="row g-2 g-md-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card p-3 text-center stats-card">
+                    <h3 class="mb-0"><%= messages ? messages.length : 0 %></h3>
+                    <small class="text-muted">Total</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3 text-center stats-card">
+                    <h3 class="mb-0 text-danger"><%= messages ? messages.filter(m => m.status === 'unread').length : 0 %></h3>
+                    <small class="text-muted">Unread</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3 text-center stats-card">
+                    <h3 class="mb-0 text-info"><%= messages ? messages.filter(m => m.status === 'read').length : 0 %></h3>
+                    <small class="text-muted">Read</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3 text-center stats-card">
+                    <h3 class="mb-0 text-success"><%= messages ? messages.filter(m => m.status === 'replied').length : 0 %></h3>
+                    <small class="text-muted">Replied</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="card p-3 p-md-4">
+            <ul class="nav nav-tabs" id="messageTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button" role="tab">Messages</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab">Create</button>
+                </li>
+            </ul>
+            <div class="tab-content pt-3">
+                <!-- ========== TAB 1: MESSAGES LIST ========== -->
+                <div class="tab-pane fade show active" id="list" role="tabpanel">
+                    <!-- Filter Buttons -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                        <h5 class="h6 mb-0"><i class="bi bi-envelope-paper"></i> All Messages</h5>
+                        <div class="d-flex flex-wrap gap-1">
+                            <button class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all" onclick="filterMessages('all')">All</button>
+                            <button class="btn btn-sm btn-outline-danger filter-btn" data-filter="unread" onclick="filterMessages('unread')">Unread</button>
+                            <button class="btn btn-sm btn-outline-info filter-btn" data-filter="read" onclick="filterMessages('read')">Read</button>
+                            <button class="btn btn-sm btn-outline-success filter-btn" data-filter="replied" onclick="filterMessages('replied')">Replied</button>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <% if (messages && messages.length > 0) { %>
+                        <div class="message-list-container">
+                            <% messages.forEach(function(msg) { %>
+                                <div class="message-card card p-3 mb-2 <%= msg.status %>" data-status="<%= msg.status %>">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-12 col-md-3">
+                                            <div class="fw-bold"><i class="bi bi-person"></i> <%= msg.patientName %></div>
+                                            <small class="text-muted"><i class="bi bi-envelope"></i> <%= msg.subject %></small>
+                                            <% if (msg.imageUrl) { %>
+                                                <div class="mt-1">
+                                                    <img src="<%= msg.imageUrl %>" class="image-thumb" alt="Patient image" onclick="viewImage('<%= msg.imageUrl %>')" title="Click to view patient image">
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <span class="status-badge status-<%= msg.status %>">
+                                                <i class="bi bi-<%= msg.status === 'unread' ? 'envelope' : msg.status === 'read' ? 'envelope-open' : 'reply-all' %>"></i>
+                                                <%= msg.status.charAt(0).toUpperCase() + msg.status.slice(1) %>
+                                            </span>
+                                            <br>
+                                            <small class="text-muted"><i class="bi bi-calendar"></i> <%= new Date(msg.createdAt).toLocaleDateString() %></small>
+                                            <% if (msg.senderRole === 'nurse') { %>
+                                                <br><span class="badge bg-info">Sent by Nurse</span>
+                                            <% } %>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <small class="text-muted"><i class="bi bi-telephone"></i> <%= msg.patientPhone %></small>
+                                            <br>
+                                            <small class="text-muted"><i class="bi bi-textarea"></i> <%= msg.message.substring(0, 40) %><%= msg.message.length > 40 ? '…' : '' %></small>
+                                            <% if (msg.nurseReplyImageUrl) { %>
+                                                <div class="mt-1">
+                                                    <small class="text-success"><i class="bi bi-image"></i> Reply has image</small>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                        <div class="col-12 col-md-3 text-md-end">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-primary" onclick="viewMessage('<%= msg._id %>')" title="View"><i class="bi bi-eye"></i></button>
+                                                <button class="btn btn-success" onclick="openReplyModal('<%= msg._id %>', '<%= msg.patientName %>')" title="Reply"><i class="bi bi-reply"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% if (msg.nurseReply) { %>
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <div class="reply-content p-2">
+                                                    <small class="text-success">
+                                                        <i class="bi bi-reply"></i> <strong>Your Reply:</strong> <%= msg.nurseReply.substring(0, 80) %><%= msg.nurseReply.length > 80 ? '…' : '' %>
+                                                    </small>
+                                                    <% if (msg.nurseReplyImageUrl) { %>
+                                                        <span class="ms-2">
+                                                            <img src="<%= msg.nurseReplyImageUrl %>" class="image-thumb" alt="Reply image" onclick="viewImage('<%= msg.nurseReplyImageUrl %>')" title="View reply image">
+                                                        </span>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <i class="bi bi-envelope-paper"></i>
+                            <h4 class="mt-3">No Messages Found</h4>
+                            <p class="text-muted">There are no messages from patients at this time.</p>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- ========== TAB 2: CREATE NEW MESSAGE ========== -->
+                <div class="tab-pane fade" id="create" role="tabpanel">
+                    <h5 class="h6"><i class="bi bi-pencil-square"></i> Send Message to Patient</h5>
+                    <hr>
+                    <form action="/nurse/message/send" method="POST" enctype="multipart/form-data" id="nurseComposeForm">
+                        <!-- Patient Selection -->
+                        <div class="mb-3">
+                            <label for="patientId" class="form-label"><i class="bi bi-person"></i> Select Patient <span class="text-danger">*</span></label>
+                            <select class="form-control" id="patientId" name="patientId" required>
+                                <option value="">-- Select a patient --</option>
+                                <% if (patients && patients.length > 0) { %>
+                                    <% patients.forEach(function(p) { %>
+                                        <option value="<%= p._id %>"><%= p.name %> - <%= p.email %> (<%= p.phone %>)</option>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="mb-3">
+                            <label for="subject" class="form-label"><i class="bi bi-tag"></i> Subject <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="subject" name="subject" placeholder="Brief subject" maxlength="100" required>
+                            <small class="text-muted" id="subjectCount">0 / 100 characters</small>
+                        </div>
+
+                        <!-- Message -->
+                        <div class="mb-3">
+                            <label for="message" class="form-label"><i class="bi bi-textarea"></i> Message <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message here…" maxlength="1000" required></textarea>
+                            <small class="text-muted char-counter" id="charCount">0 / 1000 characters</small>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="mb-3">
+                            <label for="image" class="form-label"><i class="bi bi-image"></i> Attach Image (Optional)</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*" onchange="previewComposeImage(event)">
+                            <small class="text-muted">Upload a relevant image (JPG, PNG, GIF – max 5MB)</small>
+                            <div id="imagePreview" class="mt-2" style="display: none;">
+                                <img id="previewImg" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd; padding: 5px;">
+                                <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="removeComposeImage()">Remove</button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end mt-3">
+                            <a href="/nurse/nurse-messages" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Cancel</a>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Send Message</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== VIEW MESSAGE MODAL ========== -->
+    <div class="modal fade" id="viewMessageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-envelope"></i> Message Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="viewMessageContent">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="replyFromViewBtn" onclick="replyFromView()">
+                        <i class="bi bi-reply"></i> Reply
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== IMAGE VIEW MODAL ========== -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-image"></i> Attached Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="fullImage" src="" alt="Attached image" class="modal-image">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <a id="downloadImage" href="#" download class="btn btn-primary"><i class="bi bi-download"></i> Download</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== REPLY MODAL (with image upload) ========== -->
+    <div class="modal fade" id="replyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-reply"></i> Reply to Message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/nurse/message/reply" method="POST" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" id="replyMessageId" name="messageId">
+
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-person"></i> Patient</label>
+                            <input type="text" class="form-control" id="replyPatientName" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-textarea"></i> Your Reply <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="replyMessage" name="reply" rows="5" placeholder="Type your reply here..." required></textarea>
+                            <small class="text-muted" id="replyCount">0 / 1000 characters</small>
+                        </div>
+
+                        <!-- Image Upload for Reply -->
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-image"></i> Attach Image (Optional)</label>
+                            <input type="file" class="form-control" id="replyImage" name="replyImage" accept="image/*" onchange="previewReplyImage(event)">
+                            <small class="text-muted">Upload an image to attach to your reply (max 5MB)</small>
+                            <div id="replyImagePreview" class="mt-2" style="display: none;">
+                                <img id="replyPreviewImg" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd; padding: 5px;">
+                                <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="removeReplyImage()">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success"><i class="bi bi-send"></i> Send Reply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        // ========== COMPOSE FORM ==========
+        // Character counters
+        document.getElementById('subject').addEventListener('input', function() {
+            const count = this.value.length;
+            document.getElementById('subjectCount').textContent = count + ' / 100 characters';
+        });
+        document.getElementById('message').addEventListener('input', function() {
+            const count = this.value.length;
+            const el = document.getElementById('charCount');
+            el.textContent = count + ' / 1000 characters';
+            el.className = 'text-muted char-counter ' + (count > 800 ? 'danger' : count > 600 ? 'warning' : 'success');
+        });
+
+        // Compose image preview
+        function previewComposeImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const output = document.getElementById('previewImg');
+                output.src = reader.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function removeComposeImage() {
+            document.getElementById('image').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImg').src = '#';
+        }
+
+        // ========== REPLY MODAL ==========
+        // Character counter for reply
+        document.getElementById('replyMessage').addEventListener('input', function() {
+            const count = this.value.length;
+            const counter = document.getElementById('replyCount');
+            counter.textContent = count + ' / 1000 characters';
+            counter.style.color = count > 800 ? '#dc3545' : count > 600 ? '#ffc107' : '#6c757d';
+        });
+
+        // Reply image preview
+        function previewReplyImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const output = document.getElementById('replyPreviewImg');
+                output.src = reader.result;
+                document.getElementById('replyImagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function removeReplyImage() {
+            document.getElementById('replyImage').value = '';
+            document.getElementById('replyImagePreview').style.display = 'none';
+            document.getElementById('replyPreviewImg').src = '#';
+        }
+
+        // ========== FILTER ==========
+        function filterMessages(status) {
+            const cards = document.querySelectorAll('.message-card');
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.filter === status));
+            cards.forEach(card => {
+                card.style.display = (status === 'all' || card.dataset.status === status) ? 'block' : 'none';
+            });
+        }
+
+        // ========== IMAGE VIEW ==========
+        function viewImage(imageUrl) {
+            document.getElementById('fullImage').src = imageUrl;
+            document.getElementById('downloadImage').href = imageUrl;
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            modal.show();
+        }
+
+        // ========== VIEW MESSAGE (modal) ==========
+        function viewMessage(id) {
+            fetch(`/nurse/message/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const msg = data.message;
+                        let html = `
+                            <div class="mb-3"><strong><i class="bi bi-person"></i> From:</strong><p>${msg.patientName}</p></div>
+                            <div class="mb-3"><strong><i class="bi bi-envelope"></i> Email:</strong><p>${msg.patientEmail}</p></div>
+                            <div class="mb-3"><strong><i class="bi bi-telephone"></i> Phone:</strong><p>${msg.patientPhone}</p></div>
+                            <div class="mb-3"><strong><i class="bi bi-tag"></i> Subject:</strong><p>${msg.subject}</p></div>
+                            <div class="mb-3"><strong><i class="bi bi-calendar"></i> Sent:</strong><p>${new Date(msg.createdAt).toLocaleString()}</p></div>
+                            <div class="mb-3"><strong><i class="bi bi-textarea"></i> Message:</strong>
+                                <div class="message-content"><p class="mb-0">${msg.message}</p></div>
+                            </div>
+                        `;
+
+                        // Add patient image if present
+                        if (msg.imageUrl) {
+                            html += `
+                                <div class="mb-3">
+                                    <strong><i class="bi bi-image"></i> Attached Image:</strong>
+                                    <div class="mt-2">
+                                        <img src="${msg.imageUrl}" alt="Attached image" class="modal-image" onclick="viewImage('${msg.imageUrl}')" style="cursor: pointer;">
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        // Add reply if present
+                        if (msg.nurseReply) {
+                            html += `
+                                <div class="mb-3"><strong><i class="bi bi-reply"></i> Your Reply:</strong>
+                                    <div class="reply-content"><p class="mb-0">${msg.nurseReply}</p>
+                                    <small class="text-muted mt-2 d-block"><i class="bi bi-calendar"></i> Replied on: ${new Date(msg.replyDate).toLocaleString()}</small></div>
+                                </div>
+                            `;
+                            if (msg.nurseReplyImageUrl) {
+                                html += `
+                                    <div class="mb-3">
+                                        <strong><i class="bi bi-image"></i> Reply Attached Image:</strong>
+                                        <div class="mt-2">
+                                            <img src="${msg.nurseReplyImageUrl}" alt="Reply image" class="modal-image" onclick="viewImage('${msg.nurseReplyImageUrl}')" style="cursor: pointer;">
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+
+                        html += `
+                            <div class="mb-3"><strong><i class="bi bi-info-circle"></i> Status:</strong>
+                                <span class="status-badge status-${msg.status}">
+                                    <i class="bi bi-${msg.status === 'unread' ? 'envelope' : msg.status === 'read' ? 'envelope-open' : 'reply-all'}"></i>
+                                    ${msg.status.charAt(0).toUpperCase() + msg.status.slice(1)}
+                                </span>
+                            </div>
+                        `;
+
+                        document.getElementById('viewMessageContent').innerHTML = html;
+                        document.getElementById('replyFromViewBtn').dataset.messageId = id;
+                        const modal = new bootstrap.Modal(document.getElementById('viewMessageModal'));
+                        modal.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to load message details');
+                });
+        }
+
+        // ========== REPLY FROM VIEW ==========
+        function replyFromView() {
+            const messageId = document.getElementById('replyFromViewBtn').dataset.messageId;
+            if (messageId) {
+                document.getElementById('viewMessageModal').querySelector('.btn-close').click();
+                setTimeout(() => {
+                    fetch(`/nurse/message/${messageId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                openReplyModal(messageId, data.message.patientName);
+                            }
+                        });
+                }, 300);
+            }
+        }
+
+        // ========== OPEN REPLY MODAL ==========
+        function openReplyModal(id, patientName) {
+            document.getElementById('replyMessageId').value = id;
+            document.getElementById('replyPatientName').value = patientName;
+            document.getElementById('replyMessage').value = '';
+            document.getElementById('replyCount').textContent = '0 / 1000 characters';
+            document.getElementById('replyImage').value = '';
+            document.getElementById('replyImagePreview').style.display = 'none';
+            document.getElementById('replyPreviewImg').src = '#';
+            const modal = new bootstrap.Modal(document.getElementById('replyModal'));
+            modal.show();
+        }
+
+        // ========== AUTO-DISMISS FLASH MESSAGES ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.alert').forEach(a => {
+                setTimeout(() => {
+                    a.style.transition = 'opacity 0.5s ease';
+                    a.style.opacity = '0';
+                    setTimeout(() => a.style.display = 'none', 500);
+                }, 5000);
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.2/dist/socket.io.min.js"></script>
+<script>
+  const socket = io();
+
+  socket.on('connect', () => {
+    console.log('✅ Nurse message socket connected');
+  });
+
+  socket.on('data-updated', (data) => {
+    if (data.type === 'message') {
+      console.log('📩 New message, reloading page...');
+      window.location.reload();
+    }
+  });
+</script>
+
+</body>
+</html>

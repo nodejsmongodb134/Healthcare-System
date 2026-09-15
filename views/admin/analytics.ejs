@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: #f0f2f5;
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px 0;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+        .navbar-brand {
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .navbar-brand i {
+            font-size: 1.2rem;
+        }
+        .navbar-text {
+            font-size: 0.8rem;
+        }
+        .navbar .btn-outline-light {
+            border-width: 1.5px;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.75rem;
+        }
+        .navbar .btn-outline-light i {
+            font-size: 0.9rem;
+        }
+        /* mobile nav spacing */
+        .navbar-nav .nav-item {
+            margin: 2px 0;
+        }
+
+        /* ===== ALERT ===== */
+        .alert-info {
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            background: #e8edff;
+            border-color: #c8d4ff;
+            color: #2d3b7a;
+        }
+        .alert-info h4 {
+            font-size: 1rem;
+            margin-bottom: 0.2rem;
+        }
+        .alert-info p {
+            font-size: 0.85rem;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            border: none;
+            background: #fff;
+            transition: box-shadow 0.2s ease;
+            height: 100%;
+        }
+        .card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid #eef0f4;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.75rem 1rem 0.5rem 1rem;
+            letter-spacing: 0.2px;
+        }
+        .card-body {
+            padding: 0.75rem 1rem 1rem 1rem;
+        }
+
+        /* ===== CHART CONTAINERS ===== */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            min-height: 180px;
+        }
+        /* larger on tablets & desktops */
+        @media (min-width: 576px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+        @media (min-width: 992px) {
+            .chart-container {
+                height: 280px;
+            }
+        }
+        /* very small screens */
+        @media (max-width: 399px) {
+            .chart-container {
+                height: 160px;
+                min-height: 140px;
+            }
+        }
+
+        /* ===== FILTER BUTTONS ===== */
+        .btn-group.filter-group {
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .btn-group.filter-group .btn {
+            border-radius: 20px !important;
+            padding: 0.35rem 1rem;
+            font-size: 0.78rem;
+            font-weight: 500;
+            border: 1.5px solid #d0d5dd;
+            background: #fff;
+            color: #344054;
+            transition: all 0.2s ease;
+            min-height: 36px;
+            min-width: 56px;
+        }
+        .btn-group.filter-group .btn:hover {
+            background: #f5f7fa;
+            border-color: #b0b8c4;
+        }
+        .btn-group.filter-group .btn.active {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.35);
+        }
+        .btn-group.filter-group .btn.active:hover {
+            background: #5a6fd6;
+            border-color: #5a6fd6;
+        }
+        /* touch-friendly tap targets */
+        @media (max-width: 575.98px) {
+            .btn-group.filter-group .btn {
+                padding: 0.4rem 0.9rem;
+                font-size: 0.75rem;
+                min-height: 40px;
+                min-width: 60px;
+            }
+            .btn-group.filter-group {
+                gap: 6px;
+            }
+        }
+
+        /* ===== RESPONSIVE GRID TWEAKS ===== */
+        .row.g-4 {
+            --bs-gutter-y: 1.25rem;
+            --bs-gutter-x: 1.25rem;
+        }
+        @media (max-width: 575.98px) {
+            .row.g-4 {
+                --bs-gutter-y: 1rem;
+                --bs-gutter-x: 0.75rem;
+            }
+            .container {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .row.g-4 {
+                --bs-gutter-y: 1.25rem;
+                --bs-gutter-x: 1.25rem;
+            }
+            .container {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        @media (max-width: 575.98px) {
+            body {
+                font-size: 13px;
+            }
+            .card-header {
+                font-size: 0.85rem;
+                padding: 0.6rem 0.75rem 0.4rem 0.75rem;
+            }
+            .card-body {
+                padding: 0.5rem 0.75rem 0.75rem 0.75rem;
+            }
+            .alert-info h4 {
+                font-size: 0.9rem;
+            }
+            .alert-info p {
+                font-size: 0.78rem;
+            }
+            .navbar-brand {
+                font-size: 0.9rem;
+            }
+            .navbar-text {
+                font-size: 0.7rem;
+            }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            body {
+                font-size: 13.5px;
+            }
+            .card-header {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* ===== UTILITIES ===== */
+        .text-muted-small {
+            color: #6b7a8f;
+            font-size: 0.75rem;
+        }
+        .badge-role {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.5rem;
+            font-weight: 500;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        .card {
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+        }
+
+        /* ===== SCROLLBAR (optional polish) ===== */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #eef0f4;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #bcc3d0;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8b0be;
+        }
+
+        /* ===== PRINT / REDUCED MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-calendar-check"></i>
+                <span class="d-none d-sm-inline">Appointment Booking</span>
+                <span class="d-inline d-sm-none">Bookings</span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item d-flex align-items-center">
+                    <span class="navbar-text text-white me-2 me-lg-3">
+                        <i class="bi bi-person-circle"></i>
+                        <%= user.name %>
+                            <span class="badge bg-light text-dark ms-1 badge-role"><%= user.role %></span>
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/dashboard" class="btn btn-outline-light btn-sm me-1 me-lg-2">
+                        <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container mt-3 mt-md-4">
+
+    <!-- Alert -->
+    <div class="alert alert-info d-flex align-items-start gap-2">
+        <i class="bi bi-graph-up fs-5 mt-1"></i>
+        <div>
+            <h4 class="h5">Analytics Dashboard</h4>
+            <p class="mb-0">Visual insights into appointments, orders, users, and nurse performance.</p>
+        </div>
+    </div>
+
+    <!-- Period Filter -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="btn-group filter-group" role="group" aria-label="Period filter">
+                <button class="btn active" data-period="daily" onclick="updateAppointmentsChart('daily')">Daily</button>
+                <button class="btn" data-period="weekly" onclick="updateAppointmentsChart('weekly')">Weekly</button>
+                <button class="btn" data-period="monthly" onclick="updateAppointmentsChart('monthly')">Monthly</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row g-3 g-md-4">
+        <!-- Appointments Over Time -->
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-header">Appointments Over Time</div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="appointmentsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Status Pie -->
+        <div class="col-12 col-lg-4">
+            <div class="card">
+                <div class="card-header">Order Status Breakdown</div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="orderStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row g-3 g-md-4 mt-1 mt-md-2">
+        <!-- New Users Per Day -->
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-header">New Users Per Day <span class="text-muted-small">(Last 14 Days)</span></div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="newUsersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Active Nurses -->
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-header">Most Active Nurses</div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="activeNursesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+    // ============================================================
+    //  GLOBALS
+    // ============================================================
+    let appointmentsChart = null;
+    let orderStatusChart = null;
+    let newUsersChart = null;
+    let activeNursesChart = null;
+
+    // ============================================================
+    //  APPOINTMENTS CHART
+    // ============================================================
+    async function updateAppointmentsChart(period) {
+        // Update active button
+        document.querySelectorAll('.filter-group .btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.period === period);
+        });
+
+        try {
+            const res = await fetch(`/admin/api/analytics/appointments-over-time?period=${period}`);
+            const data = await res.json();
+
+            if (appointmentsChart) {
+                appointmentsChart.destroy();
+                appointmentsChart = null;
+            }
+
+            const ctx = document.getElementById('appointmentsChart').getContext('2d');
+            appointmentsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels || [],
+                    datasets: [{
+                        label: 'Appointments',
+                        data: data.data || [],
+                        backgroundColor: 'rgba(102, 126, 234, 0.65)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1.5,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' },
+                            ticks: { font: { size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 10 },
+                                maxRotation: 30,
+                                minRotation: 0
+                            }
+                        }
+                    },
+                    animation: { duration: 500 }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading appointments chart:', err);
+        }
+    }
+
+    // ============================================================
+    //  ORDER STATUS CHART
+    // ============================================================
+    async function loadOrderStatusChart() {
+        try {
+            const res = await fetch('/admin/api/analytics/order-status');
+            const data = await res.json();
+            const ctx = document.getElementById('orderStatusChart').getContext('2d');
+
+            orderStatusChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.labels || [],
+                    datasets: [{
+                        data: data.data || [],
+                        backgroundColor: data.colors || ['#ffc107', '#17a2b8', '#28a745', '#dc3545'],
+                        borderWidth: 1.5,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                font: { size: 10 },
+                                padding: 8
+                            }
+                        }
+                    },
+                    animation: { duration: 600 }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading order status chart:', err);
+        }
+    }
+
+    // ============================================================
+    //  NEW USERS CHART
+    // ============================================================
+    async function loadNewUsersChart() {
+        try {
+            const res = await fetch('/admin/api/analytics/new-users');
+            const data = await res.json();
+            const ctx = document.getElementById('newUsersChart').getContext('2d');
+
+            newUsersChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels || [],
+                    datasets: [{
+                        label: 'New Users',
+                        data: data.data || [],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.12)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 2.5,
+                        pointBackgroundColor: '#28a745',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' },
+                            ticks: { font: { size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 9 },
+                                maxRotation: 30,
+                                minRotation: 0
+                            }
+                        }
+                    },
+                    animation: { duration: 500 }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading new users chart:', err);
+        }
+    }
+
+    // ============================================================
+    //  MOST ACTIVE NURSES CHART
+    // ============================================================
+    async function loadActiveNursesChart() {
+        try {
+            const res = await fetch('/admin/api/analytics/most-active-nurses?limit=5');
+            const data = await res.json();
+            const ctx = document.getElementById('activeNursesChart').getContext('2d');
+
+            activeNursesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels || [],
+                    datasets: [{
+                        label: 'Appointments Handled',
+                        data: data.data || [],
+                        backgroundColor: 'rgba(23, 162, 184, 0.65)',
+                        borderColor: 'rgba(23, 162, 184, 1)',
+                        borderWidth: 1.5,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' },
+                            ticks: { font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 10 },
+                                maxRotation: 0
+                            }
+                        }
+                    },
+                    animation: { duration: 500 }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading active nurses chart:', err);
+        }
+    }
+
+    // ============================================================
+    //  HANDLE WINDOW RESIZE — redraw charts to fit container
+    // ============================================================
+    let resizeTimer = null;
+
+    function handleResize() {
+        if (resizeTimer) {
+            clearTimeout(resizeTimer);
+            resizeTimer = null;
+        }
+        resizeTimer = setTimeout(() => {
+            // Each chart's `responsive: true` + `maintainAspectRatio: false`
+            // will auto-adjust, but we force a re-render by toggling the size.
+            // Chart.js handles this internally; we just need to trigger an update.
+            if (appointmentsChart) appointmentsChart.update('none');
+            if (orderStatusChart) orderStatusChart.update('none');
+            if (newUsersChart) newUsersChart.update('none');
+            if (activeNursesChart) activeNursesChart.update('none');
+            resizeTimer = null;
+        }, 120);
+    }
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Load all charts
+        await updateAppointmentsChart('daily');
+        await loadOrderStatusChart();
+        await loadNewUsersChart();
+        await loadActiveNursesChart();
+
+        // Listen for resize
+        window.addEventListener('resize', handleResize);
+
+        // Also re-check on orientation change (mobile)
+        window.addEventListener('orientationchange', () => {
+            setTimeout(handleResize, 300);
+        });
+    });
+
+    // Cleanup on page unload (optional)
+    window.addEventListener('beforeunload', () => {
+        window.removeEventListener('resize', handleResize);
+    });
+</script>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+</html>

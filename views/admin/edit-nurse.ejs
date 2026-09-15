@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: #f4f7fc;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* === NAVBAR === */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 12px 0;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+        }
+        .navbar-brand i {
+            font-size: 1.3rem;
+            margin-right: 6px;
+        }
+        .navbar-text {
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .navbar-text .badge {
+            font-weight: 600;
+            padding: 0.35rem 0.65rem;
+        }
+        .navbar .btn-outline-light {
+            border-width: 2px;
+            font-weight: 600;
+            padding: 0.25rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 30px;
+        }
+        .navbar .btn-outline-light i {
+            font-size: 0.9rem;
+        }
+
+        /* === CARD === */
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+            background: #ffffff;
+        }
+        .card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
+        }
+        .card h4 {
+            font-weight: 700;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h4 i {
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+        .card hr {
+            opacity: 0.2;
+            margin: 0.75rem 0 1.5rem 0;
+        }
+
+        /* === FORM === */
+        .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .form-label i {
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+        .form-label .required-star {
+            color: #e53e3e;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 0.9rem;
+            padding: 0.6rem 1rem;
+            height: auto;
+            min-height: 44px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            background: #f7fafc;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+            background: #ffffff;
+        }
+        .form-control::placeholder {
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23667eea' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 12px 8px;
+            padding-right: 2.5rem;
+        }
+
+        /* === SWITCH === */
+        .form-switch .form-check-input {
+            width: 3.2rem;
+            height: 1.6rem;
+            border-radius: 30px;
+            border: 1.5px solid #e2e8f0;
+            background-color: #e2e8f0;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23a0aec0'/%3e%3c/svg%3e");
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        .form-switch .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e");
+        }
+        .form-switch .form-check-label {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            border-radius: 40px;
+            font-weight: 600;
+            padding: 0.6rem 1.8rem;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: #667eea;
+            border-color: #667eea;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+            border-color: #5a67d8;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
+        }
+        .btn-outline-secondary {
+            border-color: #e2e8f0;
+            color: #4a5568;
+            background: #ffffff;
+        }
+        .btn-outline-secondary:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+        .btn i {
+            font-size: 1rem;
+        }
+
+        /* === ALERTS === */
+        .alert {
+            border-radius: 12px;
+            font-size: 0.85rem;
+            padding: 0.75rem 1rem;
+            animation: slideDown 0.4s ease-out;
+            border: none;
+        }
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .alert-danger {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+        .alert i {
+            margin-right: 8px;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* === RESPONSIVE TWEAKS === */
+
+        /* Mobile (max-width: 575.98px) */
+        @media (max-width: 575.98px) {
+            body {
+                font-size: 14px;
+            }
+            .container {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+            .navbar-brand {
+                font-size: 1rem;
+            }
+            .navbar-text {
+                font-size: 0.75rem;
+            }
+            .card {
+                padding: 1.25rem !important;
+                border-radius: 16px;
+            }
+            .card h4 {
+                font-size: 1rem;
+            }
+            .card h4 i {
+                font-size: 1.1rem;
+            }
+            .form-control, .form-select {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+                min-height: 40px;
+            }
+            .form-label {
+                font-size: 0.75rem;
+            }
+            .btn {
+                font-size: 0.8rem;
+                padding: 0.4rem 1rem;
+                min-height: 40px;
+                width: 100%;
+            }
+            .d-flex.flex-sm-row {
+                flex-direction: column !important;
+            }
+            .d-flex.flex-sm-row .btn {
+                width: 100%;
+            }
+            .form-switch .form-check-input {
+                width: 2.8rem;
+                height: 1.4rem;
+            }
+            .row.g-2 {
+                --bs-gutter-x: 0.5rem;
+            }
+        }
+
+        /* Tablet (576px - 991.98px) */
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+            .card {
+                padding: 2rem !important;
+            }
+            .btn {
+                padding: 0.5rem 1.5rem;
+                font-size: 0.8rem;
+            }
+            .form-control, .form-select {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.85rem;
+            }
+        }
+
+        /* Desktop (992px+) */
+        @media (min-width: 992px) {
+            .container {
+                padding-left: 32px;
+                padding-right: 32px;
+            }
+            .card {
+                padding: 2.5rem !important;
+            }
+            .btn {
+                padding: 0.6rem 2rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Misc */
+        .text-muted {
+            color: #718096 !important;
+            font-size: 0.8rem;
+        }
+        .gap-2 {
+            gap: 0.6rem !important;
+        }
+        .mt-4 {
+            margin-top: 2rem !important;
+        }
+        @media (max-width: 575.98px) {
+            .mt-4 {
+                margin-top: 1rem !important;
+            }
+        }
+        .mt-3 {
+            margin-top: 1.25rem !important;
+        }
+
+        /* Touch targets */
+        .btn, .navbar .btn-outline-light, a, .form-check-input {
+            touch-action: manipulation;
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-calendar-check"></i>
+                <span class="d-none d-sm-inline">Appointment Booking</span>
+                <span class="d-inline d-sm-none">Bookings</span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item d-flex align-items-center">
+                    <span class="navbar-text text-white me-2 me-lg-3">
+                        <i class="bi bi-person-circle"></i>
+                        <%= user.name %>
+                        <span class="badge bg-light text-dark ms-1"><%= user.role %></span>
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/nurses/manage" class="btn btn-outline-light btn-sm me-1 me-lg-2">
+                        <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Back</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container mt-3 mt-md-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-9">
+
+            <div class="card p-3 p-md-4 p-lg-5">
+
+                <!-- Header -->
+                <h4 class="h4"><i class="bi bi-pencil"></i> Edit Nurse</h4>
+                <hr>
+
+                <!--------- Flash Messages -------------->
+
+                <%- include('../partials/flash') %>
+
+
+                <!-- Form -->
+                <form action="/admin/nurses/update/<%= nurse._id %>" method="POST">
+
+                    <div class="row g-2">
+
+                        <!-- Name -->
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label"><i class="bi bi-person"></i> Full Name <span class="required-star">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" value="<%= nurse.name %>" required placeholder="e.g. Jane Smith">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label"><i class="bi bi-envelope"></i> Email <span class="required-star">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" value="<%= nurse.email %>" required placeholder="nurse@example.com">
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label"><i class="bi bi-telephone"></i> Phone <span class="required-star">*</span></label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="<%= profile.phone || '' %>" required placeholder="+27 12 345 6789">
+                        </div>
+
+                        <!-- ID Number -->
+                        <div class="col-md-6 mb-3">
+                            <label for="idNumber" class="form-label"><i class="bi bi-credit-card-2-front"></i> ID Number <span class="required-star">*</span></label>
+                            <input type="text" class="form-control" id="idNumber" name="idNumber" value="<%= profile.idNumber || '' %>" required placeholder="1234567890">
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="col-md-6 mb-3">
+                            <label for="dateOfBirth" class="form-label"><i class="bi bi-calendar-event"></i> Date of Birth <span class="required-star">*</span></label>
+                            <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" value="<%= profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : '' %>" required>
+                        </div>
+
+                        <!-- License Number -->
+                        <div class="col-md-6 mb-3">
+                            <label for="licenseNumber" class="form-label"><i class="bi bi-card-list"></i> License Number</label>
+                            <input type="text" class="form-control" id="licenseNumber" name="licenseNumber" value="<%= profile.licenseNumber || '' %>" placeholder="e.g. NURSE-1234">
+                        </div>
+
+                        <!-- Qualification -->
+                        <div class="col-md-6 mb-3">
+                            <label for="qualification" class="form-label"><i class="bi bi-mortarboard"></i> Qualification</label>
+                            <input type="text" class="form-control" id="qualification" name="qualification" value="<%= profile.qualification || '' %>" placeholder="e.g. BSc Nursing">
+                        </div>
+
+                        <!-- Specialization -->
+                        <div class="col-md-6 mb-3">
+                            <label for="specialization" class="form-label"><i class="bi bi-stethoscope"></i> Specialization</label>
+                            <input type="text" class="form-control" id="specialization" name="specialization" value="<%= profile.specialization || '' %>" placeholder="e.g. Pediatrics">
+                        </div>
+
+                        <!-- Years of Experience -->
+                        <div class="col-md-6 mb-3">
+                            <label for="yearsOfExperience" class="form-label"><i class="bi bi-clock-history"></i> Years of Experience</label>
+                            <input type="number" class="form-control" id="yearsOfExperience" name="yearsOfExperience" value="<%= profile.yearsOfExperience || 0 %>" min="0" placeholder="0">
+                        </div>
+
+                    </div>
+
+                    <!-- Active Status Switch -->
+                    <div class="mb-4 mt-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isActive" name="isActive" <%= nurse.isActive ? 'checked' : '' %>>
+                            <label class="form-check-label" for="isActive">
+                                <i class="bi bi-check-circle-fill text-success me-1"></i> Active
+                            </label>
+                        </div>
+                        <small class="text-muted">Toggle to activate or deactivate this nurse account.</small>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 justify-content-end mt-3">
+                        <a href="/admin/nurses/manage" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Update Nurse</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+    // Auto-dismiss flash messages
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.alert').forEach(a => {
+            setTimeout(() => {
+                a.style.transition = 'opacity 0.5s ease';
+                a.style.opacity = '0';
+                setTimeout(() => a.style.display = 'none', 500);
+            }, 5000);
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

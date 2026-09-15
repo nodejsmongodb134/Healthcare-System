@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* ========== GLOBAL ========== */
+        body {
+            background: #f0f2f5;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 0;
+        }
+        .navbar-brand { font-size: 1.1rem; font-weight: 600; }
+        .navbar-text { font-size: 0.85rem; }
+        .btn-outline-light { border-color: rgba(255,255,255,0.5); color: white; }
+        .btn-outline-light:hover { background: rgba(255,255,255,0.2); border-color: white; }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            border: none;
+        }
+        .btn-primary { background: #667eea; border: none; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-outline-primary { color: #667eea; border-color: #667eea; }
+        .btn-outline-primary:hover { background: #667eea; color: white; }
+        .form-label { font-weight: 600; color: #555; }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+        .form-control[readonly] {
+            background-color: #e9ecef;
+            cursor: default;
+        }
+        .alert { animation: slideDown 0.5s ease-out; }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        /* ========== TABS ========== */
+        .nav-tabs {
+            border-bottom: 2px solid #e9ecef;
+            gap: 4px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        .nav-tabs::-webkit-scrollbar { height: 4px; }
+        .nav-tabs::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 4px; }
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 30px 30px 0 0;
+            font-weight: 600;
+            color: #6c757d;
+            padding: 12px 20px;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+            background: transparent;
+            white-space: nowrap;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #667eea;
+            background: #f8f9fa;
+        }
+        .nav-tabs .nav-link.active {
+            color: #667eea;
+            background: #ffffff;
+            border-bottom: 3px solid #667eea;
+        }
+        .nav-tabs .nav-link i { margin-right: 6px; }
+
+        /* ========== AVATAR ========== */
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: white;
+            font-weight: 700;
+            margin: 0 auto 12px;
+            box-shadow: 0 6px 16px rgba(102,126,234,0.35);
+        }
+
+        /* ========== INFO ROWS ========== */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 12px;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label {
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .info-value {
+            font-weight: 600;
+            color: #333;
+            text-align: right;
+            word-break: break-word;
+            max-width: 60%;
+        }
+
+        /* ========== STATS CARDS ========== */
+        .stat-card {
+            padding: 16px;
+            border-radius: 12px;
+            background: white;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+            color: #667eea;
+        }
+        .stat-card small {
+            color: #6c757d;
+            font-size: 0.78rem;
+        }
+        .stat-card.warning { border-left-color: #ffc107; }
+        .stat-card.warning h3 { color: #ffc107; }
+        .stat-card.success { border-left-color: #28a745; }
+        .stat-card.success h3 { color: #28a745; }
+        .stat-card.info { border-left-color: #17a2b8; }
+        .stat-card.info h3 { color: #17a2b8; }
+
+        /* ========== BADGES ========== */
+        .badge-chronic {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge-normal {
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* ========== SECURITY ITEMS ========== */
+        .security-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .security-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #667eea;
+            flex-shrink: 0;
+        }
+        .security-item .flex-grow-1 {
+            min-width: 180px;
+            flex: 1;
+        }
+        .security-item .btn,
+        .security-item .badge {
+            flex-shrink: 0;
+        }
+
+        /* ========== DANGER ZONE ========== */
+        .danger-card {
+            border: 1px solid #f8d7da !important;
+            background: #fff5f5 !important;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 575.98px) {
+            body { font-size: 13px; }
+            .container { padding-left: 12px; padding-right: 12px; }
+            .navbar-brand { font-size: 0.95rem; }
+            .navbar-text { font-size: 0.75rem; }
+            .card { border-radius: 10px; }
+            .card .p-4 { padding: 16px !important; }
+            .nav-tabs .nav-link { padding: 9px 12px; font-size: 0.78rem; }
+            .nav-tabs .nav-link i { margin-right: 4px; }
+            .info-row { flex-direction: column; align-items: flex-start; }
+            .info-value { text-align: left; max-width: 100%; }
+            .stat-card h3 { font-size: 1.4rem; }
+            .btn { font-size: 0.75rem; padding: 5px 12px; }
+            .security-item { padding: 12px; }
+            .security-icon { width: 36px; height: 36px; font-size: 0.95rem; }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container { padding-left: 20px; padding-right: 20px; }
+            .card .p-4 { padding: 24px !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <span class="navbar-text text-white me-3">
+                            <i class="bi bi-person-circle"></i> Welcome, <%= user.name %>
+                            <span class="badge bg-light text-dark ms-2"><%= user.role %></span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/patient-dashboard" class="btn btn-outline-light btn-sm me-2">
+                            <i class="bi bi-arrow-left"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5">
+
+        <!-- Flash Messages -->
+        <%- include('../partials/flash') %>
+
+        <!-- ========== PROFILE HEADER ========== -->
+        <div class="card p-4 mb-4">
+            <div class="text-center">
+                <div class="profile-avatar">
+                    <%= user.name ? user.name.charAt(0).toUpperCase() : '?' %>
+                </div>
+                <h5 class="mb-1"><%= user.name %></h5>
+                <p class="text-muted mb-2">
+                    <i class="bi bi-envelope"></i> <%= user.email %>
+                </p>
+                <span class="badge bg-primary text-capitalize"><%= user.role %></span>
+                <% if (patient && patient.isChronic) { %>
+                    <span class="badge-chronic ms-2"><i class="bi bi-heart-pulse"></i> Chronic Patient</span>
+                <% } else { %>
+                    <span class="badge-normal ms-2"><i class="bi bi-check-circle"></i> Active</span>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- ========== TABS ========== -->
+        <div class="card p-3 p-md-4">
+            <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
+                        <i class="bi bi-person-vcard"></i> Personal Information
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit" type="button" role="tab">
+                        <i class="bi bi-pencil-square"></i> Edit Profile
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+                        <i class="bi bi-shield-lock"></i> Account Security
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="quick-tab" data-bs-toggle="tab" data-bs-target="#quick" type="button" role="tab">
+                        <i class="bi bi-info-circle"></i> Quick Info
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+
+                <!-- ========== TAB 1: PERSONAL INFORMATION ========== -->
+                <div class="tab-pane fade show active" id="info" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h6 class="mb-0 text-muted"><i class="bi bi-person-vcard"></i> Personal Information</h6>
+                        <button class="btn btn-sm btn-outline-primary" onclick="switchTab('edit-tab')">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-person"></i> Full Name</span>
+                        <span class="info-value"><%= user.name %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-envelope"></i> Email Address</span>
+                        <span class="info-value"><%= user.email %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-telephone"></i> Phone Number</span>
+                        <span class="info-value">
+                            <%= patient && patient.phone ? patient.phone : 'Not set' %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-person-badge"></i> ID Number</span>
+                        <span class="info-value">
+                            <%= patient && patient.idNumber ? patient.idNumber : 'Not set' %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-calendar"></i> Date of Birth</span>
+                        <span class="info-value">
+                            <%= patient && patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : 'Not set' %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-gender-ambiguous"></i> Gender</span>
+                        <span class="info-value text-capitalize">
+                            <%= patient && patient.gender ? patient.gender : 'Not set' %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-geo-alt"></i> Address</span>
+                        <span class="info-value">
+                            <%= patient && patient.address ? patient.address : 'Not set' %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-heart-pulse"></i> Chronic Status</span>
+                        <span class="info-value">
+                            <% if (patient && patient.isChronic) { %>
+                                <span class="badge-chronic">Chronic</span>
+                            <% } else { %>
+                                <span class="badge-normal">Normal</span>
+                            <% } %>
+                        </span>
+                    </div>
+                    <% if (patient && patient.isChronic && patient.medicationName) { %>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-capsule"></i> Chronic Medication</span>
+                        <span class="info-value"><%= patient.medicationName %></span>
+                    </div>
+                    <% } %>
+                </div>
+
+                <!-- ========== TAB 2: EDIT PROFILE ========== -->
+                <div class="tab-pane fade" id="edit" role="tabpanel">
+                    <h6 class="mb-3 text-muted"><i class="bi bi-pencil-square"></i> Edit Profile</h6>
+
+                    <form action="/patient/profile/update" method="POST" id="editProfileForm">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label for="name" class="form-label"><i class="bi bi-person"></i> Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name"
+                                       value="<%= user.name %>" readonly>
+                                <small class="text-muted">Managed by clinic</small>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="email" class="form-label"><i class="bi bi-envelope"></i> Email</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="<%= user.email %>" readonly>
+                                <small class="text-muted">Used for login</small>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="phone" class="form-label"><i class="bi bi-telephone"></i> Phone <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" name="phone"
+                                       value="<%= patient && patient.phone ? patient.phone : '' %>"
+                                       placeholder="e.g. 0814725897" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="idNumber" class="form-label"><i class="bi bi-person-badge"></i> ID Number</label>
+                                <input type="text" class="form-control" id="idNumber" name="idNumber"
+                                       value="<%= patient && patient.idNumber ? patient.idNumber : '' %>"
+                                       placeholder="National ID / Passport">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="dateOfBirth" class="form-label"><i class="bi bi-calendar"></i> Date of Birth</label>
+                                <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth"
+                                       value="<%= patient && patient.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split('T')[0] : '' %>">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="gender" class="form-label"><i class="bi bi-gender-ambiguous"></i> Gender</label>
+                                <select class="form-select" id="gender" name="gender">
+                                    <option value="">-- Select --</option>
+                                    <option value="male" <%= patient && patient.gender === 'male' ? 'selected' : '' %>>Male</option>
+                                    <option value="female" <%= patient && patient.gender === 'female' ? 'selected' : '' %>>Female</option>
+                                    <option value="other" <%= patient && patient.gender === 'other' ? 'selected' : '' %>>Other</option>
+                                    <option value="prefer-not-to-say" <%= patient && patient.gender === 'prefer-not-to-say' ? 'selected' : '' %>>Prefer not to say</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="address" class="form-label"><i class="bi bi-geo-alt"></i> Home Address</label>
+                                <input type="text" class="form-control" id="address" name="address"
+                                       value="<%= patient && patient.address ? patient.address : '' %>"
+                                       placeholder="Street, suburb, city">
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end mt-4">
+                            <button type="button" class="btn btn-outline-secondary" onclick="switchTab('info-tab')">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ========== TAB 3: ACCOUNT SECURITY ========== -->
+                <div class="tab-pane fade" id="security" role="tabpanel">
+                    <h6 class="mb-3 text-muted"><i class="bi bi-shield-lock"></i> Account Security</h6>
+
+                    <!-- Password -->
+                    <div class="security-item">
+                        <div class="security-icon"><i class="bi bi-key"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">Password</div>
+                            <small class="text-muted">Change your password regularly.</small>
+                        </div>
+                        <a href="/patient/change-password" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i> Change
+                        </a>
+                    </div>
+
+                    <!-- Email Verification -->
+                    <div class="security-item">
+                        <div class="security-icon"><i class="bi bi-envelope-check"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">Email Verification</div>
+                            <small class="text-muted">
+                                <%= user.isVerified ? 'Your email is verified.' : 'Your email is not verified.' %>
+                            </small>
+                        </div>
+                        <% if (user.isVerified) { %>
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Verified</span>
+                        <% } else { %>
+                            <a href="/auth/resend-verification" class="btn btn-sm btn-warning">
+                                <i class="bi bi-envelope"></i> Verify
+                            </a>
+                        <% } %>
+                    </div>
+
+                    <!-- Two-Factor -->
+                    <div class="security-item">
+                        <div class="security-icon"><i class="bi bi-phone"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">Two-Factor Authentication</div>
+                            <small class="text-muted">Extra layer of security.</small>
+                        </div>
+                        <span class="badge bg-secondary">Coming Soon</span>
+                    </div>
+
+                    <!-- Last Login 
+                    <div class="security-item">
+                        <div class="security-icon"><i class="bi bi-clock-history"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">Last Login</div>
+                            <small class="text-muted">
+                                <%= user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Unknown' %>
+                            </small>
+                        </div>
+                    </div>
+                    -->
+
+                    <!-- Account Status -->
+                    <div class="security-item">
+                        <div class="security-icon"><i class="bi bi-shield-check"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">Account Status</div>
+                            <small class="text-muted">
+                                <span class="text-success"><i class="bi bi-check-circle"></i> Active</span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="text-danger mb-3"><i class="bi bi-exclamation-triangle"></i> Danger Zone</h6>
+                    <div class="security-item danger-card">
+                        <div class="security-icon" style="background:#f8d7da; color:#dc3545;">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">Sign Out</div>
+                            <small class="text-muted">Sign out from this device.</small>
+                        </div>
+                        <a href="/auth/logout" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </div>
+                </div>
+
+                <!-- ========== TAB 4: QUICK INFO ========== -->
+                <div class="tab-pane fade" id="quick" role="tabpanel">
+                    <h6 class="mb-3 text-muted"><i class="bi bi-info-circle"></i> Quick Info</h6>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card">
+                                <h3><%= stats && stats.totalAppointments !== undefined ? stats.totalAppointments : 0 %></h3>
+                                <small><i class="bi bi-calendar-check"></i> Appointments</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card warning">
+                                <h3><%= stats && stats.pendingAppointments !== undefined ? stats.pendingAppointments : 0 %></h3>
+                                <small><i class="bi bi-clock"></i> Pending</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card success">
+                                <h3><%= stats && stats.confirmedAppointments !== undefined ? stats.confirmedAppointments : 0 %></h3>
+                                <small><i class="bi bi-check-circle"></i> Confirmed</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card info">
+                                <h3><%= stats && stats.totalOrders !== undefined ? stats.totalOrders : 0 %></h3>
+                                <small><i class="bi bi-prescription"></i> Orders</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="mb-3"><i class="bi bi-person-lines-fill"></i> Account Summary</h6>
+                    <div class="info-row">
+                        <span class="info-label">Member Since</span>
+                        <span class="info-value">
+                            <%= user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown' %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Account Role</span>
+                        <span class="info-value text-capitalize"><%= user.role %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Patient Status</span>
+                        <span class="info-value">
+                            <% if (patient && patient.isChronic) { %>
+                                <span class="badge-chronic">Chronic</span>
+                            <% } else { %>
+                                <span class="badge-normal">Normal</span>
+                            <% } %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Next Refill</span>
+                        <span class="info-value">
+                            <%= patient && patient.nextRefillDate ? new Date(patient.nextRefillDate).toLocaleDateString() : 'Not scheduled' %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email Verified</span>
+                        <span class="info-value">
+                            <% if (user.isVerified) { %>
+                                <span class="text-success"><i class="bi bi-check-circle"></i> Yes</span>
+                            <% } else { %>
+                                <span class="text-danger"><i class="bi bi-x-circle"></i> No</span>
+                            <% } %>
+                        </span>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="mb-3"><i class="bi bi-lightning-charge"></i> Quick Actions</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="/patient/appointment" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-calendar-plus"></i> Book Appointment
+                        </a>
+                        <a href="/patient/order" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-prescription"></i> Order Prescription
+                        </a>
+                        <a href="/patient/message" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-envelope"></i> Send Message
+                        </a>
+                        <a href="/patient/view-appointments" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-list-ul"></i> View Appointments
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Tab switch helper
+        function switchTab(tabId) {
+            const tab = new bootstrap.Tab(document.getElementById(tabId));
+            tab.show();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Form validation
+        const editForm = document.getElementById('editProfileForm');
+        if (editForm) {
+            editForm.addEventListener('submit', function (e) {
+                const phone = document.getElementById('phone').value.trim();
+                if (!phone || !phone.match(/^[0-9+\-\s()]{10,15}$/)) {
+                    e.preventDefault();
+                    alert('Please enter a valid phone number (10-15 digits)');
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        // Auto-dismiss flash messages
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.alert').forEach(function (a) {
+                setTimeout(function () {
+                    a.style.transition = 'opacity 0.5s ease';
+                    a.style.opacity = '0';
+                    setTimeout(function () { a.style.display = 'none'; }, 500);
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

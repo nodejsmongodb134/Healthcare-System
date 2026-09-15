@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* ========== GLOBAL ========== */
+        body {
+            background: #f0f2f5;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 0;
+        }
+        .navbar-brand {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .navbar-text {
+            font-size: 0.85rem;
+        }
+        .btn-outline-light {
+            border-color: rgba(255,255,255,0.5);
+            color: white;
+        }
+        .btn-outline-light:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            border: none;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: #667eea;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-outline-secondary {
+            color: #667eea;
+            border-color: #667eea;
+        }
+        .btn-outline-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+        .form-control:read-only {
+            background-color: #e9ecef;
+            cursor: default;
+        }
+        .form-control:not(:read-only) {
+            background-color: #ffffff;
+            border-color: #667eea;
+        }
+        .alert {
+            animation: slideDown 0.5s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        /* ========== PROFILE IMAGE ========== */
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        @media (max-width: 575.98px) {
+            .profile-image {
+                width: 90px;
+                height: 90px;
+                font-size: 36px;
+            }
+        }
+
+        /* ========== BADGES ========== */
+        .profile-complete-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .profile-complete-badge.complete {
+            background: #28a745;
+            color: white;
+        }
+        .profile-complete-badge.incomplete {
+            background: #ffc107;
+            color: #856404;
+        }
+
+        /* ========== RESPONSIVE TWEAKS ========== */
+        @media (max-width: 575.98px) {
+            body { font-size: 13px; }
+            .container { padding-left: 12px; padding-right: 12px; }
+            .navbar-brand { font-size: 0.95rem; }
+            .navbar-text { font-size: 0.75rem; }
+            .card { border-radius: 10px; }
+            .card .p-4 { padding: 16px !important; }
+            .card .p-3 { padding: 12px !important; }
+            .btn { font-size: 0.75rem; padding: 6px 12px; }
+            .btn-sm { font-size: 0.65rem; padding: 4px 8px; }
+            .form-label { font-size: 0.85rem; }
+            .form-control { font-size: 0.9rem; padding: 8px 10px; }
+            .profile-complete-badge { font-size: 0.75rem; padding: 3px 10px; }
+            .d-grid .btn { width: 100%; margin-bottom: 6px; }
+            .d-md-flex { flex-direction: column; gap: 8px; }
+            .d-md-flex .btn-outline-secondary { margin-right: 0 !important; }
+            .row > .col-md-6 { margin-bottom: 12px; }
+            .profile-image { width: 90px; height: 90px; font-size: 36px; }
+        }
+
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container { padding-left: 20px; padding-right: 20px; }
+            .card .p-4 { padding: 24px !important; }
+            .btn { font-size: 0.8rem; padding: 6px 14px; }
+            .form-control { font-size: 0.95rem; }
+            .profile-image { width: 110px; height: 110px; font-size: 42px; }
+        }
+
+        @media (min-width: 992px) {
+            .container { padding-left: 40px; padding-right: 40px; }
+            .card .p-4 { padding: 32px !important; }
+            .btn { font-size: 0.85rem; padding: 8px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVBAR with responsive toggler ========== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <span class="navbar-text text-white me-3">
+                            <i class="bi bi-person-circle"></i> Welcome, <%= user.name %>
+                            <span class="badge bg-light text-dark ms-2"><%= user.role %></span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/nurse-dashboard" class="btn btn-outline-light btn-sm me-2">
+                            <i class="bi bi-arrow-left"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="alert alert-info shadow-sm">
+            <h4 class="h5"><i class="bi bi-person-gear"></i> Nurse Profile Management</h4>
+            <p class="mb-0">View and update your professional information.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left column: Profile Card -->
+            <div class="col-md-4">
+                <div class="card p-3 p-md-4 text-center">
+                    <div class="profile-image">
+                        <%= user.name.charAt(0).toUpperCase() %>
+                    </div>
+                    <h4 class="mt-3"><%= user.name %></h4>
+                    <p class="text-muted"><%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %></p>
+
+                    <div class="mt-2">
+                        <span class="profile-complete-badge <%= isProfileComplete ? 'complete' : 'incomplete' %>">
+                            <i class="bi bi-<%= isProfileComplete ? 'check-circle' : 'clock' %>"></i>
+                            <%= isProfileComplete ? 'Profile Complete' : 'Profile Incomplete' %>
+                        </span>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <% if (!isProfileComplete) { %>
+                            <button class="btn btn-warning" onclick="enableEdit()" id="editBtn">
+                                <i class="bi bi-pencil"></i> Complete Profile
+                            </button>
+                        <% } else { %>
+                            <button class="btn btn-primary" onclick="enableEdit()" id="editBtn">
+                                <i class="bi bi-pencil"></i> Edit Profile
+                            </button>
+                        <% } %>
+                        <button class="btn btn-success" onclick="saveProfile()" id="saveBtn" style="display:none;">
+                            <i class="bi bi-<%= isProfileComplete ? 'save' : 'check-circle' %>"></i>
+                            <%= isProfileComplete ? 'Save Changes' : 'Complete Profile' %>
+                        </button>
+                        <button class="btn btn-secondary" onclick="cancelEdit()" id="cancelBtn" style="display:none;">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Info -->
+                <div class="card p-3 mt-3">
+                    <h6 class="h6"><i class="bi bi-info-circle"></i> Quick Info</h6>
+                    <hr>
+                    <p><i class="bi bi-envelope"></i> <strong>Email:</strong> <%= nurse.email || user.email %></p>
+                    <p><i class="bi bi-calendar"></i> <strong>Member Since:</strong> <%= new Date(user.createdAt || Date.now()).toLocaleDateString() %></p>
+                    <p><i class="bi bi-credit-card"></i> <strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+                </div>
+            </div>
+
+            <!-- Right column: Profile Form -->
+            <div class="col-md-8">
+                <div class="card p-3 p-md-4">
+                    <h5 class="h6"><i class="bi bi-person-vcard"></i> Professional Information</h5>
+                    <hr>
+
+                    <!-- Profile Completion Warning -->
+                    <% if (!isProfileComplete) { %>
+                        <div class="alert alert-warning" role="alert" style="border-left: 4px solid #ffc107;">
+                            <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Complete Your Profile</h6>
+                            <p>Please fill in all your details below to complete your profile. This is required to access all features.</p>
+                            <hr>
+                            <p class="mb-0"><i class="bi bi-info-circle"></i> All fields marked with <span class="text-danger">*</span> are required.</p>
+                        </div>
+                    <% } %>
+
+                    <!--------- Flash Messages -------------->
+
+                    <%- include('../partials/flash') %>
+
+
+                    <form action="/nurse/profile/update" method="POST" id="profileForm">
+                        <div class="row g-2">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label"><i class="bi bi-person"></i> Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" value="<%= nurse.name || user.name %>" readonly required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="idNumber" class="form-label"><i class="bi bi-credit-card-2-front"></i> ID Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="idNumber" name="idNumber" value="<%= nurse.idNumber || '' %>" readonly required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label"><i class="bi bi-telephone"></i> Cellphone Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" name="phone" value="<%= nurse.phone || '' %>" readonly required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label"><i class="bi bi-envelope"></i> Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" value="<%= nurse.email || user.email %>" readonly required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateOfBirth" class="form-label"><i class="bi bi-calendar-event"></i> Date of Birth <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" value="<%= nurse.dateOfBirth ? new Date(nurse.dateOfBirth).toISOString().split('T')[0] : '' %>" readonly required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="age" class="form-label"><i class="bi bi-clock"></i> Age</label>
+                                <input type="text" class="form-control" id="age" name="age" value="<%= nurse.age || '' %>" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="qualification" class="form-label"><i class="bi bi-mortarboard"></i> Qualification</label>
+                                <input type="text" class="form-control" id="qualification" name="qualification" value="<%= nurse.qualification || '' %>" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="specialization" class="form-label"><i class="bi bi-stethoscope"></i> Specialization</label>
+                                <input type="text" class="form-control" id="specialization" name="specialization" value="<%= nurse.specialization || '' %>" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="yearsOfExperience" class="form-label"><i class="bi bi-clock-history"></i> Years of Experience</label>
+                                <input type="number" class="form-control" id="yearsOfExperience" name="yearsOfExperience" value="<%= nurse.yearsOfExperience || '' %>" readonly min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="licenseNumber" class="form-label"><i class="bi bi-card-list"></i> License Number</label>
+                                <input type="text" class="form-control" id="licenseNumber" name="licenseNumber" value="<%= nurse.licenseNumber || '' %>" readonly>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end mt-3">
+                            <button type="reset" class="btn btn-outline-secondary" id="resetBtn" style="display:none;">
+                                <i class="bi bi-arrow-counterclockwise"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none;">
+                                <i class="bi bi-<%= isProfileComplete ? 'save' : 'check-circle' %>"></i>
+                                <%= isProfileComplete ? 'Save Changes' : 'Complete Profile' %>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Account Security -->
+                <div class="card p-3 p-md-4 mt-3">
+                    <h6 class="h6"><i class="bi bi-shield-lock"></i> Account Security</h6>
+                    <hr>
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <p><strong>Email Verified:</strong> <span class="badge bg-success"><i class="bi bi-check-circle"></i> Yes</span></p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Profile Status:</strong>
+                                <span class="badge <%= isProfileComplete ? 'bg-success' : 'bg-warning' %>">
+                                    <i class="bi bi-<%= isProfileComplete ? 'check-circle' : 'clock' %>"></i>
+                                    <%= isProfileComplete ? 'Complete' : 'Incomplete' %>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <a href="/nurse/change-password" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-key"></i> Change Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto‑dismiss flash messages
+            document.querySelectorAll('.alert').forEach(a => {
+                setTimeout(() => {
+                    a.style.transition = 'opacity 0.5s ease';
+                    a.style.opacity = '0';
+                    setTimeout(() => a.style.display = 'none', 500);
+                }, 5000);
+            });
+
+            // Calculate age on load
+            const dob = document.getElementById('dateOfBirth').value;
+            if (dob) {
+                const dobDate = new Date(dob);
+                const today = new Date();
+                let age = today.getFullYear() - dobDate.getFullYear();
+                const monthDiff = today.getMonth() - dobDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dobDate.getDate())) age--;
+                document.getElementById('age').value = age;
+            }
+
+            // Make inputs readonly initially
+            document.querySelectorAll('#profileForm input').forEach(input => {
+                input.setAttribute('readonly', true);
+                input.style.backgroundColor = '#e9ecef';
+                input.style.cursor = 'default';
+            });
+        });
+
+        document.getElementById('dateOfBirth').addEventListener('change', function() {
+            if (!this.readOnly) {
+                const dob = new Date(this.value);
+                if (dob) {
+                    const today = new Date();
+                    let age = today.getFullYear() - dob.getFullYear();
+                    const monthDiff = today.getMonth() - dob.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+                    document.getElementById('age').value = age;
+                }
+            }
+        });
+
+        function enableEdit() {
+            document.querySelectorAll('#profileForm input').forEach(input => {
+                if (input.id !== 'age') {
+                    input.removeAttribute('readonly');
+                    input.style.backgroundColor = '#ffffff';
+                    input.style.cursor = 'text';
+                }
+            });
+            document.getElementById('editBtn').style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'block';
+            document.getElementById('cancelBtn').style.display = 'block';
+            document.getElementById('resetBtn').style.display = 'inline-block';
+            document.getElementById('submitBtn').style.display = 'inline-block';
+            document.querySelector('.card.p-4 h4').innerHTML =
+                '<i class="bi bi-person-vcard"></i> Professional Information <span class="badge bg-warning text-dark ms-2">Editing Mode</span>';
+            document.getElementById('name').focus();
+        }
+
+        function saveProfile() {
+            document.getElementById('profileForm').submit();
+        }
+
+        function cancelEdit() {
+            location.reload();
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

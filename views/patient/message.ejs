@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* ========== GLOBAL ========== */
+        body { background: #f0f2f5; font-size: 14px; line-height: 1.6; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 10px 0; }
+        .navbar-brand { font-size: 1.1rem; font-weight: 600; }
+        .navbar-text { font-size: 0.85rem; }
+        .btn-outline-light { border-color: rgba(255,255,255,0.5); color: white; }
+        .btn-outline-light:hover { background: rgba(255,255,255,0.2); border-color: white; }
+        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); border: none; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+        .btn-primary { background: #667eea; border: none; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-outline-secondary { color: #667eea; border-color: #667eea; }
+        .btn-outline-secondary:hover { background: #667eea; color: white; }
+        .form-label { font-weight: 600; color: #555; }
+        .form-control:focus { border-color: #667eea; box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25); }
+        .alert { animation: slideDown 0.5s ease-out; }
+        @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ========== STATUS BADGE ========== */
+        .status-badge {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-unread { background: #dc3545; color: white; }
+        .status-read { background: #17a2b8; color: white; }
+        .status-replied { background: #28a745; color: white; }
+
+        /* ========== MESSAGE CARD ========== */
+        .message-card {
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+            background: white;
+        }
+        .message-card:hover { transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .message-card.unread { border-left-color: #dc3545; background: #fff5f5; }
+        .message-card.read { border-left-color: #17a2b8; }
+        .message-card.replied { border-left-color: #28a745; }
+        .message-subject { font-weight: 600; color: #333; }
+        .message-preview { color: #666; font-size: 0.9rem; }
+        .badge-unread { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity:1; } 50% { opacity:0.6; } 100% { opacity:1; } }
+        .image-thumb { max-width: 40px; max-height: 40px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer; }
+
+        /* ========== SCROLLBAR ========== */
+        .message-list-container { max-height: 600px; overflow-y: auto; border-radius: 10px; }
+        .message-list-container::-webkit-scrollbar { width: 6px; }
+        .message-list-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .message-list-container::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+        .message-list-container::-webkit-scrollbar-thumb:hover { background: #5a67d8; }
+
+        /* ========== CHARACTER COUNTERS ========== */
+        .char-counter { font-size: 0.85rem; }
+        .char-counter.success { color: #28a745; }
+        .char-counter.warning { color: #ffc107; }
+        .char-counter.danger { color: #dc3545; }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state { text-align: center; padding: 40px 20px; }
+        .empty-state i { font-size: 4rem; color: #dee2e6; }
+
+        /* ========== NAV TABS ========== */
+        .nav-tabs .nav-link {
+            color: #4a5568;
+            font-weight: 500;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 0.5rem 1rem;
+            border-radius: 0;
+        }
+        .nav-tabs .nav-link.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            background: transparent;
+        }
+        .nav-tabs .nav-link:hover {
+            border-bottom: 2px solid #667eea;
+            color: #667eea;
+        }
+        .tab-pane { padding-top: 1rem; }
+
+        /* ========== RESPONSIVE TWEAKS ========== */
+        @media (max-width: 575.98px) {
+            body { font-size: 13px; }
+            .container { padding-left: 12px; padding-right: 12px; }
+            .navbar-brand { font-size: 0.95rem; }
+            .navbar-text { font-size: 0.75rem; }
+            .card { border-radius: 10px; }
+            .card .p-4 { padding: 16px !important; }
+            .card .p-3 { padding: 12px !important; }
+            .btn { font-size: 0.75rem; padding: 5px 12px; }
+            .btn-sm { font-size: 0.65rem; padding: 3px 8px; }
+            .status-badge { font-size: 0.7rem; padding: 3px 8px; }
+            .form-label { font-size: 0.85rem; }
+            .form-control { font-size: 0.9rem; padding: 8px 10px; }
+            .message-subject { font-size: 0.9rem; }
+            .message-preview { font-size: 0.8rem; }
+            .filter-btn { font-size: 0.7rem; padding: 3px 8px; }
+            .stats-card h3 { font-size: 1.4rem; }
+            .d-md-flex { flex-direction: column; gap: 8px; }
+            .d-md-flex .btn { width: 100%; }
+            .d-md-flex .btn-outline-secondary { margin-right: 0 !important; }
+            .btn-group .btn { font-size: 0.6rem; padding: 2px 6px; }
+            .message-card .row > div { text-align: left; margin-bottom: 4px; }
+            .message-card .col-md-2.text-end { text-align: left !important; }
+            .char-counter { font-size: 0.75rem; }
+            .message-list-container { max-height: 400px; }
+            .image-thumb { max-width: 30px; max-height: 30px; }
+            .nav-tabs .nav-link { font-size: 0.85rem; padding: 0.4rem 0.7rem; }
+        }
+
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container { padding-left: 20px; padding-right: 20px; }
+            .card .p-4 { padding: 24px !important; }
+            .btn { font-size: 0.8rem; padding: 6px 14px; }
+            .form-control { font-size: 0.95rem; }
+        }
+
+        @media (min-width: 992px) {
+            .container { padding-left: 40px; padding-right: 40px; }
+            .card .p-4 { padding: 32px !important; }
+            .btn { font-size: 0.85rem; padding: 8px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <span class="navbar-text text-white me-3">
+                            <i class="bi bi-person-circle"></i> Welcome, <%= user.name %>
+                            <span class="badge bg-light text-dark ms-2"><%= user.role %></span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/patient-dashboard" class="btn btn-outline-light btn-sm me-2">
+                            <i class="bi bi-arrow-left"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        
+        <!-- Header 
+        <div class="alert alert-info shadow-sm">
+            <h4 class="h5"><i class="bi bi-envelope"></i> Messages</h4>
+            <p class="mb-0">Manage your messages and send new ones to our nursing team.</p>
+        </div>
+        -->
+                    <!--------- Flash Messages -------------->
+
+                    <%- include('../partials/flash') %>
+
+
+        <!-- Tabs -->
+        <div class="card p-3 p-md-4">
+            <ul class="nav nav-tabs" id="messageTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button" role="tab">
+                        <i class="bi bi-envelope-paper"></i> Messages
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab">
+                        <i class="bi bi-pencil-square"></i> Create
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content">
+
+                <!-- ========== TAB 1: MESSAGES LIST ========== -->
+                <div class="tab-pane fade show active" id="messages" role="tabpanel">
+                    <!-- Stats Cards -->
+                    <div class="row g-2 g-md-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="card p-3 text-center stats-card">
+                                <h3 class="h4 mb-0"><%= messages ? messages.length : 0 %></h3>
+                                <small class="text-muted">Total</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card p-3 text-center stats-card">
+                                <h3 class="h4 mb-0 text-danger"><%= messages ? messages.filter(m => m.status === 'unread').length : 0 %></h3>
+                                <small class="text-muted">Unread</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card p-3 text-center stats-card">
+                                <h3 class="h4 mb-0 text-info"><%= messages ? messages.filter(m => m.status === 'read').length : 0 %></h3>
+                                <small class="text-muted">Read</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card p-3 text-center stats-card">
+                                <h3 class="h4 mb-0 text-success"><%= messages ? messages.filter(m => m.status === 'replied').length : 0 %></h3>
+                                <small class="text-muted">Replied</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Buttons -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                        <h5 class="h6 mb-0"><i class="bi bi-funnel"></i> Filter</h5>
+                        <div class="d-flex flex-wrap gap-1">
+                            <button class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all" onclick="filterMessages('all')">All</button>
+                            <button class="btn btn-sm btn-outline-danger filter-btn" data-filter="unread" onclick="filterMessages('unread')">Unread</button>
+                            <button class="btn btn-sm btn-outline-info filter-btn" data-filter="read" onclick="filterMessages('read')">Read</button>
+                            <button class="btn btn-sm btn-outline-success filter-btn" data-filter="replied" onclick="filterMessages('replied')">Replied</button>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <!-- Messages List -->
+                    <% if (messages && messages.length > 0) { %>
+                        <div class="message-list-container">
+                            <% messages.forEach(function(msg) { %>
+                                <div class="message-card card p-3 mb-2 <%= msg.status %>" data-status="<%= msg.status %>">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-12 col-md-4">
+                                            <div class="message-subject">
+                                                <i class="bi bi-<%= msg.status === 'unread' ? 'envelope' : msg.status === 'read' ? 'envelope-open' : 'reply' %>"></i>
+                                                <%= msg.subject %>
+                                                <% if (msg.status === 'unread') { %>
+                                                    <span class="badge bg-danger badge-unread ms-2">New</span>
+                                                <% } %>
+                                            </div>
+                                            <div class="message-preview">
+                                                <%= msg.message.substring(0, 60) %><%= msg.message.length > 60 ? '…' : '' %>
+                                            </div>
+                                            <% if (msg.imageUrl) { %>
+                                                <div class="mt-1">
+                                                    <img src="<%= msg.imageUrl %>" class="image-thumb" alt="Image" onclick="window.open('<%= msg.imageUrl %>', '_blank')">
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <span class="status-badge status-<%= msg.status %>">
+                                                <i class="bi bi-<%= msg.status === 'unread' ? 'envelope' : msg.status === 'read' ? 'envelope-open' : 'reply-all' %>"></i>
+                                                <%= msg.status.charAt(0).toUpperCase() + msg.status.slice(1) %>
+                                            </span>
+                                            <% if (msg.senderRole === 'nurse') { %>
+                                                <br><span class="badge bg-info">From Nurse</span>
+                                            <% } %>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-person"></i>
+                                                <%= msg.senderRole === 'nurse' ? (msg.nurseName || 'Nurse') : msg.patientName %>
+                                            </small>
+                                            <small class="text-muted"><i class="bi bi-calendar"></i> <%= new Date(msg.createdAt).toLocaleDateString() %></small>
+                                            <% if (msg.parentId) { %>
+                                                <br><span class="badge bg-secondary">Reply</span>
+                                            <% } %>
+                                        </div>
+                                        <div class="col-12 col-md-2 text-md-end">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-primary" onclick="viewMessage('<%= msg._id %>')" title="View"><i class="bi bi-eye"></i></button>
+                                                <% if (msg.status !== 'replied') { %>
+                                                    <button class="btn btn-outline-warning" onclick="editMessage('<%= msg._id %>')" title="Edit"><i class="bi bi-pencil"></i></button>
+                                                    <button class="btn btn-outline-danger" onclick="deleteMessage('<%= msg._id %>')" title="Delete"><i class="bi bi-trash"></i></button>
+                                                <% } %>
+                                                <!-- ===== REPLY BUTTON ===== -->
+                                                <a href="/patient/message/reply/<%= msg._id %>" class="btn btn-primary btn-sm" title="Reply"><i class="bi bi-reply"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% if (msg.nurseReply) { %>
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <div class="bg-light p-2 rounded small">
+                                                    <i class="bi bi-reply text-success"></i> <strong>Reply:</strong> <%= msg.nurseReply.substring(0, 80) %><%= msg.nurseReply.length > 80 ? '…' : '' %>
+                                                    <% if (msg.nurseReplyImageUrl) { %>
+                                                        <span class="ms-2">
+                                                            <img src="<%= msg.nurseReplyImageUrl %>" alt="Reply image" style="max-width: 30px; max-height: 30px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer;" onclick="window.open('<%= msg.nurseReplyImageUrl %>', '_blank')">
+                                                        </span>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <i class="bi bi-envelope-paper"></i>
+                            <h4 class="mt-3">No Messages Found</h4>
+                            <p class="text-muted">You haven't sent any messages yet.</p>
+                            <button class="btn btn-primary" onclick="switchTab('create')">
+                                <i class="bi bi-plus-circle"></i> Send Your First Message
+                            </button>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- ========== TAB 2: CREATE MESSAGE ========== -->
+                <div class="tab-pane fade" id="create" role="tabpanel">
+                    <h5 class="h6"><i class="bi bi-pencil-square"></i> Compose Message</h5>
+                    <hr>
+
+                    <form action="/patient/message/send" method="POST" enctype="multipart/form-data" id="composeForm">
+                        <!-- ===== HIDDEN PARENT ID (if replying) ===== -->
+                        <% if (parentId) { %>
+                            <input type="hidden" name="parentId" value="<%= parentId %>">
+                            <div class="alert alert-info">
+                                <i class="bi bi-reply"></i> You are replying to a message from a nurse.
+                            </div>
+                        <% } %>
+
+                        <!-- Patient Name -->
+                        <div class="mb-3">
+                            <label for="patientName" class="form-label"><i class="bi bi-person"></i> Your Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="patientName" name="patientName" value="<%= user.name %>" readonly>
+                        </div>
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="patientEmail" class="form-label"><i class="bi bi-envelope"></i> Your Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="patientEmail" name="patientEmail" value="<%= user.email %>" readonly>
+                        </div>
+                        <!-- Phone -->
+                        <div class="mb-3">
+                            <label for="patientPhone" class="form-label"><i class="bi bi-telephone"></i> Your Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="patientPhone" name="patientPhone" value="<%= patient.phone || '' %>" placeholder="Enter your phone number" required>
+                        </div>
+                        <!-- Subject with pre-filled value -->
+                        <div class="mb-3">
+                            <label for="subject" class="form-label"><i class="bi bi-tag"></i> Subject <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="subject" name="subject" placeholder="Brief subject of your message" maxlength="100" value="<%= replySubject || '' %>" required>
+                            <small class="text-muted" id="subjectCount">0 / 100 characters</small>
+                        </div>
+                        <!-- Message -->
+                        <div class="mb-3">
+                            <label for="message" class="form-label"><i class="bi bi-textarea"></i> Message <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message here…" maxlength="1000" required></textarea>
+                            <small class="text-muted char-counter" id="charCount">0 / 1000 characters</small>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="mb-3">
+                            <label for="image" class="form-label"><i class="bi bi-image"></i> Attach Image (Optional)</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*" onchange="previewImage(event)">
+                            <small class="text-muted">Upload a relevant image (JPG, PNG, GIF – max 5MB)</small>
+                            <div id="imagePreview" class="mt-2" style="display: none;">
+                                <img id="previewImg" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd; padding: 5px;">
+                                <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="removeImage()">Remove</button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end mt-3">
+                            <a href="/auth/patient-dashboard" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Cancel</a>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Send Message</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div><!-- /.tab-content -->
+        </div><!-- /.card -->
+    </div>
+
+    <script>
+        // Character counters
+        document.getElementById('subject').addEventListener('input', function() {
+            const count = this.value.length;
+            document.getElementById('subjectCount').textContent = count + ' / 100 characters';
+        });
+        document.getElementById('message').addEventListener('input', function() {
+            const count = this.value.length;
+            const el = document.getElementById('charCount');
+            el.textContent = count + ' / 1000 characters';
+            el.className = 'text-muted char-counter ' + (count > 800 ? 'danger' : count > 600 ? 'warning' : 'success');
+        });
+
+        // Image preview
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const output = document.getElementById('previewImg');
+                output.src = reader.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function removeImage() {
+            document.getElementById('image').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImg').src = '#';
+        }
+
+        // Filter messages
+        function filterMessages(status) {
+            const cards = document.querySelectorAll('.message-card');
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.filter === status));
+            cards.forEach(card => {
+                card.style.display = (status === 'all' || card.dataset.status === status) ? 'block' : 'none';
+            });
+        }
+
+        // View, edit, delete
+        function viewMessage(id) { window.location.href = `/patient/message/${id}`; }
+        function editMessage(id) { window.location.href = `/patient/message/edit/${id}`; }
+        function deleteMessage(id) {
+            if (confirm('Are you sure you want to delete this message?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/patient/message/delete/${id}`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Switch tabs
+        function switchTab(tabId) {
+            const tabTrigger = document.querySelector(`#messageTabs button[data-bs-target="#${tabId}"]`);
+            if (tabTrigger) {
+                const tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+
+        // Auto-switch to 'Create' tab when replying
+        document.addEventListener('DOMContentLoaded', function() {
+            const parentId = '<%= parentId || "" %>';
+            const replySubject = '<%= replySubject || "" %>';
+            if (parentId || replySubject) {
+                switchTab('create');
+                // Focus on message textarea after a short delay
+                setTimeout(() => {
+                    const msgField = document.getElementById('message');
+                    if (msgField) msgField.focus();
+                }, 300);
+            }
+
+            // Auto-dismiss flash messages
+            document.querySelectorAll('.alert').forEach(a => {
+                setTimeout(() => {
+                    a.style.transition = 'opacity 0.5s ease';
+                    a.style.opacity = '0';
+                    setTimeout(() => a.style.display = 'none', 500);
+                }, 5000);
+            });
+
+            // Form validation
+            document.getElementById('composeForm').addEventListener('submit', function(e) {
+                const phone = document.getElementById('patientPhone').value;
+                const subject = document.getElementById('subject').value.trim();
+                const msg = document.getElementById('message').value.trim();
+                if (!phone.match(/^[0-9+\-\s()]{10,15}$/)) { e.preventDefault(); alert('Please enter a valid phone number'); return; }
+                if (subject.length < 3) { e.preventDefault(); alert('Subject must be at least 3 characters'); return; }
+                if (msg.length < 10) { e.preventDefault(); alert('Message must be at least 10 characters'); return; }
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.2/dist/socket.io.min.js"></script>
+<script>
+  const socket = io();
+
+  socket.on('connect', () => {
+    console.log('✅ Patient message socket connected');
+  });
+
+  socket.on('data-updated', (data) => {
+    if (data.type === 'message') {
+      console.log('📩 New message, reloading page...');
+      window.location.reload();
+    }
+  });
+</script>
+
+</body>
+</html>

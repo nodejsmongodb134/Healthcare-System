@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: #f4f7fc;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 0;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: -0.3px;
+        }
+        .navbar-brand i {
+            font-size: 1.3rem;
+            margin-right: 6px;
+        }
+        .navbar-text {
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .navbar-text .badge {
+            font-weight: 600;
+            padding: 0.3rem 0.65rem;
+        }
+        .navbar .btn-outline-light {
+            border-width: 2px;
+            font-weight: 600;
+            padding: 0.25rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 30px;
+        }
+        .navbar .btn-outline-light i {
+            font-size: 0.9rem;
+        }
+        @media (max-width: 575.98px) {
+            .navbar-brand {
+                font-size: 1rem;
+            }
+            .navbar-text {
+                font-size: 0.75rem;
+            }
+            .navbar .btn-outline-light {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.5rem;
+            }
+            .navbar .btn-outline-light i {
+                font-size: 0.8rem;
+            }
+            .navbar-nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                gap: 4px;
+                margin-top: 4px;
+            }
+            .navbar-nav .nav-item {
+                display: inline-block;
+            }
+            .navbar-nav .nav-item .navbar-text {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+        }
+        @media (max-width: 399px) {
+            .navbar .btn-outline-light {
+                font-size: 0.6rem;
+                padding: 0.15rem 0.4rem;
+            }
+            .navbar-brand {
+                font-size: 0.85rem;
+            }
+            .navbar-text .badge {
+                font-size: 0.55rem;
+                padding: 0.15rem 0.4rem;
+            }
+        }
+
+        /* ===== CARD ===== */
+        .card {
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            background: #ffffff;
+            transition: box-shadow 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+        .card h4 {
+            font-weight: 700;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+        .card h4 i {
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+        .card hr {
+            opacity: 0.2;
+            margin: 0.75rem 0 1.25rem 0;
+        }
+
+        /* card padding responsive */
+        .card.p-3.p-md-4 {
+            padding: 1.25rem !important;
+        }
+        @media (max-width: 575.98px) {
+            .card.p-3.p-md-4 {
+                padding: 1rem !important;
+            }
+            .card h4 {
+                font-size: 1rem;
+            }
+            .card h4 i {
+                font-size: 1.1rem;
+            }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .card.p-3.p-md-4 {
+                padding: 1.75rem !important;
+            }
+        }
+        @media (min-width: 992px) {
+            .card.p-3.p-md-4 {
+                padding: 2rem !important;
+            }
+        }
+
+        /* ===== FILTER BUTTONS ===== */
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+        .filter-group .btn {
+            border-radius: 30px;
+            font-weight: 600;
+            padding: 0.3rem 1rem;
+            font-size: 0.75rem;
+            border-width: 2px;
+            transition: all 0.15s ease;
+            min-height: 34px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .filter-group .btn.active {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+        }
+        .filter-group .btn:not(.active) {
+            background: transparent;
+            color: #4a5568;
+            border-color: #e2e8f0;
+        }
+        .filter-group .btn:not(.active):hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+        @media (max-width: 575.98px) {
+            .filter-group .btn {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.7rem;
+                min-height: 32px;
+            }
+            .filter-group {
+                gap: 3px;
+                margin-top: 0.5rem;
+            }
+            .d-flex.flex-wrap.justify-content-between {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+            .d-flex.flex-wrap.justify-content-between .filter-group {
+                justify-content: flex-start;
+            }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .filter-group .btn {
+                font-size: 0.72rem;
+                padding: 0.3rem 0.8rem;
+            }
+        }
+
+        /* ===== TABLE ===== */
+        .table-responsive {
+            border-radius: 12px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .table-responsive::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .table {
+            font-size: 0.82rem;
+            margin-bottom: 0;
+            min-width: 900px;
+        }
+        .table th {
+            font-weight: 700;
+            color: #4a5568;
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 0.65rem 0.6rem;
+            white-space: nowrap;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .table td {
+            padding: 0.5rem 0.6rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .table tbody tr:hover {
+            background: #f7f9fc;
+        }
+        @media (max-width: 575.98px) {
+            .table {
+                font-size: 0.7rem;
+                min-width: 650px;
+            }
+            .table th,
+            .table td {
+                padding: 0.3rem 0.4rem;
+            }
+            .table th {
+                font-size: 0.65rem;
+            }
+            .table-responsive {
+                max-height: 400px;
+            }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .table {
+                font-size: 0.78rem;
+                min-width: 750px;
+            }
+            .table th,
+            .table td {
+                padding: 0.4rem 0.5rem;
+            }
+        }
+
+        /* ===== STATUS BADGE ===== */
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            letter-spacing: 0.2px;
+            line-height: 1.6;
+        }
+        .status-pending {
+            background: #ffc107;
+            color: #856404;
+        }
+        .status-in-transit {
+            background: #17a2b8;
+            color: #fff;
+        }
+        .status-delivered {
+            background: #28a745;
+            color: #fff;
+        }
+        .status-cancelled {
+            background: #dc3545;
+            color: #fff;
+        }
+        @media (max-width: 575.98px) {
+            .status-badge {
+                font-size: 0.6rem;
+                padding: 2px 10px;
+            }
+        }
+
+        /* ===== FORM CONTROLS IN TABLE ===== */
+        .table .form-select-sm {
+            font-size: 0.7rem;
+            padding: 0.2rem 1.5rem 0.2rem 0.5rem;
+            height: 28px;
+            border-radius: 20px;
+            border: 1.5px solid #e2e8f0;
+            background-color: #f7fafc;
+            min-width: 110px;
+        }
+        .table .form-select-sm:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
+        }
+        .table .btn-sm {
+            padding: 0.15rem 0.5rem;
+            font-size: 0.7rem;
+            min-height: 28px;
+            border-radius: 30px;
+        }
+        .table .btn-sm i {
+            font-size: 0.8rem;
+        }
+        .table .d-flex.align-items-center.gap-1 {
+            gap: 4px !important;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 575.98px) {
+            .table .form-select-sm {
+                font-size: 0.6rem;
+                padding: 0.15rem 1.2rem 0.15rem 0.4rem;
+                min-width: 90px;
+                height: 26px;
+            }
+            .table .btn-sm {
+                padding: 0.1rem 0.4rem;
+                font-size: 0.6rem;
+                min-height: 24px;
+            }
+            .table .btn-sm i {
+                font-size: 0.7rem;
+            }
+        }
+
+        /* ===== PRESCRIPTION IMAGE BUTTON ===== */
+        .prescription-img-btn {
+            padding: 0.1rem 0.4rem;
+            font-size: 0.7rem;
+            border-radius: 30px;
+            border: 1.5px solid #d1d9f5;
+            color: #667eea;
+            background: transparent;
+            transition: all 0.15s ease;
+        }
+        .prescription-img-btn:hover {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+        }
+        @media (max-width: 575.98px) {
+            .prescription-img-btn {
+                font-size: 0.6rem;
+                padding: 0.1rem 0.3rem;
+            }
+        }
+
+        /* ===== GENERAL BUTTONS ===== */
+        .btn {
+            border-radius: 40px;
+            font-weight: 600;
+            padding: 0.5rem 1.5rem;
+            font-size: 0.82rem;
+            transition: all 0.2s ease;
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            border-color: #d1d7e0;
+            color: #2d3748;
+        }
+        .btn-secondary:hover {
+            background: #d1d7e0;
+            border-color: #b8c0cc;
+            color: #1a202c;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .btn-secondary i {
+            font-size: 0.9rem;
+        }
+        .btn-sm {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+            min-height: 32px;
+        }
+        @media (max-width: 575.98px) {
+            .btn {
+                font-size: 0.75rem;
+                padding: 0.4rem 1rem;
+                min-height: 38px;
+                width: 100%;
+            }
+            .btn-sm {
+                padding: 0.2rem 0.6rem;
+                font-size: 0.65rem;
+                min-height: 30px;
+                width: auto;
+            }
+            .d-flex.flex-wrap .btn-sm {
+                width: auto;
+            }
+            .mt-3 .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ===== ALERT ===== */
+        .alert {
+            border-radius: 12px;
+            font-size: 0.85rem;
+            padding: 0.6rem 1rem;
+            animation: slideDown 0.4s ease-out;
+            border: none;
+        }
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .alert-danger {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+        .alert i {
+            margin-right: 6px;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @media (max-width: 575.98px) {
+            .alert {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        /* ===== MODAL ===== */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+        .modal-header {
+            border-bottom: 1px solid #edf2f7;
+            padding: 1rem 1.25rem;
+        }
+        .modal-header .modal-title {
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-header .modal-title i {
+            color: #667eea;
+        }
+        .modal-body {
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .modal-body img {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .modal-footer {
+            border-top: 1px solid #edf2f7;
+            padding: 0.75rem 1.25rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .modal-footer .btn {
+            min-height: 38px;
+        }
+        .modal-dialog {
+            max-width: 90vw;
+        }
+        @media (max-width: 575.98px) {
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+            .modal-body {
+                padding: 0.75rem;
+            }
+            .modal-body img {
+                max-height: 300px;
+            }
+            .modal-footer {
+                flex-direction: column;
+            }
+            .modal-footer .btn {
+                width: 100%;
+            }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .modal-dialog {
+                max-width: 80vw;
+            }
+            .modal-body img {
+                max-height: 400px;
+            }
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        @media (max-width: 575.98px) {
+            .container {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+        }
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+        }
+        @media (min-width: 992px) {
+            .container {
+                padding-left: 32px;
+                padding-right: 32px;
+            }
+        }
+
+        /* ===== TOUCH TARGETS ===== */
+        .btn,
+        .navbar .btn-outline-light,
+        a,
+        .form-select,
+        .prescription-img-btn {
+            touch-action: manipulation;
+        }
+
+        /* ===== REDUCED MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== UTILITIES ===== */
+        .mt-3 {
+            margin-top: 1rem !important;
+        }
+        .mt-4 {
+            margin-top: 1.5rem !important;
+        }
+        @media (max-width: 575.98px) {
+            .mt-4 {
+                margin-top: 1rem !important;
+            }
+        }
+        .mb-3 {
+            margin-bottom: 0.75rem !important;
+        }
+        .text-muted {
+            color: #a0aec0 !important;
+        }
+        .gap-1 {
+            gap: 0.25rem !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-calendar-check"></i>
+                <span class="d-none d-sm-inline">Appointment Booking</span>
+                <span class="d-inline d-sm-none">Bookings</span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item d-flex align-items-center">
+                    <span class="navbar-text text-white me-2 me-lg-3">
+                        <i class="bi bi-person-circle"></i>
+                        <%= user.name %>
+                        <span class="badge bg-light text-dark ms-1"><%= user.role %></span>
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/dashboard" class="btn btn-outline-light btn-sm me-1 me-lg-2">
+                        <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container mt-3 mt-md-4">
+    <div class="card p-3 p-md-4">
+
+        <!-- Header with Filters -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h4 class="h5"><i class="bi bi-prescription"></i> Order Management</h4>
+            <div class="filter-group">
+                <a href="/admin/orders/manage?status=all" class="btn <%= currentFilter === 'all' ? 'active' : '' %>">All</a>
+                <a href="/admin/orders/manage?status=pending" class="btn btn-outline-warning <%= currentFilter === 'pending' ? 'active' : '' %>">Pending</a>
+                <a href="/admin/orders/manage?status=in-transit" class="btn btn-outline-info <%= currentFilter === 'in-transit' ? 'active' : '' %>">In Transit</a>
+                <a href="/admin/orders/manage?status=delivered" class="btn btn-outline-success <%= currentFilter === 'delivered' ? 'active' : '' %>">Delivered</a>
+                <a href="/admin/orders/manage?status=cancelled" class="btn btn-outline-danger <%= currentFilter === 'cancelled' ? 'active' : '' %>">Cancelled</a>
+            </div>
+        </div>
+        <hr />
+
+        <!-- Flash Messages -->
+        <% if (success_msg) { %>
+            <div class="alert alert-success"><i class="bi bi-check-circle-fill"></i> <%= success_msg %></div>
+        <% } %>
+        <% if (error_msg) { %>
+            <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill"></i> <%= error_msg %></div>
+        <% } %>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Patient</th>
+                        <th>Prescription</th>
+                        <th>Status</th>
+                        <th>Driver</th>
+                        <th>Location</th>
+                        <th>Order Date</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (orders.length === 0) { %>
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No orders found</td>
+                        </tr>
+                    <% } %>
+                    <% orders.forEach((order, index) => { %>
+                    <tr>
+                        <td><%= index + 1 %></td>
+                        <td><%= order.patientName %></td>
+                        <td>
+                            <%= order.prescriptionName %>
+                            <% if (order.prescriptionPhoto) { %>
+                                <button class="prescription-img-btn ms-1" onclick="viewPrescription('<%= order.prescriptionPhoto %>')" title="View Prescription">
+                                    <i class="bi bi-image"></i>
+                                </button>
+                            <% } %>
+                        </td>
+                        <td>
+                            <form action="/admin/orders/status/<%= order._id %>" method="POST" class="d-inline">
+                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="in-transit" <%= order.status === 'in-transit' ? 'selected' : '' %>>In Transit</option>
+                                    <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                                    <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
+                            <form action="/admin/orders/assign-driver/<%= order._id %>" method="POST" class="d-inline">
+                                <div class="d-flex align-items-center gap-1">
+                                    <select name="driverId" class="form-select form-select-sm">
+                                        <option value="">Unassigned</option>
+                                        <% drivers.forEach(d => { %>
+                                            <option value="<%= d._id %>" <%= order.driverId && order.driverId.toString() === d._id.toString() ? 'selected' : '' %>><%= d.name %></option>
+                                        <% }) %>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check"></i></button>
+                                </div>
+                            </form>
+                        </td>
+                        <td><span title="<%= order.location %>"><%= order.location.substring(0, 20) %><%= order.location.length > 20 ? '…' : '' %></span></td>
+                        <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
+                        <td class="text-center">
+                            <form action="/admin/orders/delete/<%= order._id %>" method="POST" style="display:inline;" onsubmit="return confirm('Delete this order permanently?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Order">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-3">
+            <a href="/admin/dashboard" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== PRESCRIPTION MODAL ===== -->
+<div class="modal fade" id="prescriptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-image"></i> Prescription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <img id="prescriptionImage" src="" alt="Prescription" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a id="downloadPrescription" href="#" download class="btn btn-primary"><i class="bi bi-download"></i> Download</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+    function viewPrescription(imageUrl) {
+        document.getElementById('prescriptionImage').src = imageUrl;
+        document.getElementById('downloadPrescription').href = imageUrl;
+        const modal = new bootstrap.Modal(document.getElementById('prescriptionModal'));
+        modal.show();
+    }
+
+    // Auto-dismiss flash messages
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.alert').forEach(a => {
+            setTimeout(() => {
+                a.style.transition = 'opacity 0.5s ease';
+                a.style.opacity = '0';
+                setTimeout(() => a.style.display = 'none', 500);
+            }, 5000);
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<!-- Socket.IO real-time order updates -->
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.2/dist/socket.io.min.js"></script>
+<script>
+  const socket = io();
+
+  socket.on('connect', () => {
+    console.log('✅ Admin order socket connected');
+  });
+
+  socket.on('data-updated', (data) => {
+    if (data.type === 'order') {
+      console.log('📦 Order updated, reloading page...');
+      window.location.reload();
+    }
+  });
+</script>
+
+</body>
+</html>

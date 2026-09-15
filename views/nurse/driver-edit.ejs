@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* ========== GLOBAL ========== */
+        body {
+            background: #f0f2f5;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 0;
+        }
+        .navbar-brand {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .navbar-text {
+            font-size: 0.85rem;
+        }
+        .btn-outline-light {
+            border-color: rgba(255,255,255,0.5);
+            color: white;
+        }
+        .btn-outline-light:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            border: none;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: #667eea;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-outline-secondary {
+            color: #667eea;
+            border-color: #667eea;
+        }
+        .btn-outline-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+        .form-control[readonly] {
+            background-color: #e9ecef;
+            cursor: default;
+        }
+        .alert {
+            animation: slideDown 0.5s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        /* ========== STATUS BADGE ========== */
+        .status-badge {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-active { background: #28a745; color: white; }
+        .status-inactive { background: #dc3545; color: white; }
+        .status-on-leave { background: #ffc107; color: #856404; }
+
+        /* ========== RESPONSIVE TWEAKS ========== */
+        @media (max-width: 575.98px) {
+            body { font-size: 13px; }
+            .container { padding-left: 12px; padding-right: 12px; }
+            .navbar-brand { font-size: 0.95rem; }
+            .navbar-text { font-size: 0.75rem; }
+            .card { border-radius: 10px; }
+            .card .p-4 { padding: 16px !important; }
+            .btn { font-size: 0.75rem; padding: 6px 12px; }
+            .btn-sm { font-size: 0.65rem; padding: 4px 8px; }
+            .form-label { font-size: 0.85rem; }
+            .form-control { font-size: 0.9rem; padding: 8px 10px; }
+            .d-grid .btn { width: 100%; margin-bottom: 6px; }
+            .d-md-flex { flex-direction: column; gap: 8px; }
+            .d-md-flex .btn-outline-secondary { margin-right: 0 !important; }
+            .row > .col-md-6 { margin-bottom: 12px; }
+            .status-badge { font-size: 0.7rem; padding: 3px 8px; }
+        }
+
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container { padding-left: 20px; padding-right: 20px; }
+            .card .p-4 { padding: 24px !important; }
+            .btn { font-size: 0.8rem; padding: 6px 14px; }
+            .form-control { font-size: 0.95rem; }
+        }
+
+        @media (min-width: 992px) {
+            .container { padding-left: 40px; padding-right: 40px; }
+            .card .p-4 { padding: 32px !important; }
+            .btn { font-size: 0.85rem; padding: 8px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVBAR with responsive toggler ========== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <span class="navbar-text text-white me-3">
+                            <i class="bi bi-person-circle"></i> Welcome, <%= user.name %>
+                            <span class="badge bg-light text-dark ms-2"><%= user.role %></span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/nurse/create-driver" class="btn btn-outline-light btn-sm me-2">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="card p-3 p-md-4">
+                    <h4 class="h5"><i class="bi bi-pencil-square"></i> Edit Driver</h4>
+                    <hr>
+
+                    <!--------- Flash Messages -------------->
+
+                    <%- include('../partials/flash') %>
+
+
+                    <form action="/nurse/driver/update/<%= driver._id %>" method="POST">
+                        <div class="row g-2">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label"><i class="bi bi-person"></i> Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" value="<%= driver.name %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="idNumber" class="form-label"><i class="bi bi-credit-card-2-front"></i> ID Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="idNumber" name="idNumber" value="<%= driver.idNumber %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label"><i class="bi bi-telephone"></i> Phone Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" name="phone" value="<%= driver.phone %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label"><i class="bi bi-envelope"></i> Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" value="<%= driver.email %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateOfBirth" class="form-label"><i class="bi bi-calendar-event"></i> Date of Birth <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" value="<%= new Date(driver.dateOfBirth).toISOString().split('T')[0] %>" max="<%= new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0] %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="age" class="form-label"><i class="bi bi-clock"></i> Age</label>
+                                <input type="text" class="form-control" id="age" name="age" value="<%= driver.age %>" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="licenseNumber" class="form-label"><i class="bi bi-card-list"></i> License Number</label>
+                                <input type="text" class="form-control" id="licenseNumber" name="licenseNumber" value="<%= driver.licenseNumber || '' %>" placeholder="Enter license number">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label"><i class="bi bi-toggle-on"></i> Status</label>
+                                <select class="form-control" id="status" name="status">
+                                    <option value="active" <%= driver.status === 'active' ? 'selected' : '' %>>Active</option>
+                                    <option value="on-leave" <%= driver.status === 'on-leave' ? 'selected' : '' %>>On Leave</option>
+                                    <option value="inactive" <%= driver.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vehicleType" class="form-label"><i class="bi bi-truck"></i> Vehicle Type</label>
+                                <select class="form-control" id="vehicleType" name="vehicleType">
+                                    <option value="">Select Vehicle Type</option>
+                                    <option value="motorcycle" <%= driver.vehicleType === 'motorcycle' ? 'selected' : '' %>>Motorcycle</option>
+                                    <option value="car" <%= driver.vehicleType === 'car' ? 'selected' : '' %>>Car</option>
+                                    <option value="van" <%= driver.vehicleType === 'van' ? 'selected' : '' %>>Van</option>
+                                    <option value="truck" <%= driver.vehicleType === 'truck' ? 'selected' : '' %>>Truck</option>
+                                    <option value="bicycle" <%= driver.vehicleType === 'bicycle' ? 'selected' : '' %>>Bicycle</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vehiclePlate" class="form-label"><i class="bi bi-car-front"></i> Vehicle Plate Number</label>
+                                <input type="text" class="form-control" id="vehiclePlate" name="vehiclePlate" value="<%= driver.vehiclePlate || '' %>" placeholder="Enter vehicle plate number">
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end mt-3">
+                            <a href="/nurse/create-driver" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Cancel</a>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Update Driver</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Calculate age on date of birth change
+        document.getElementById('dateOfBirth').addEventListener('change', function() {
+            const dob = new Date(this.value);
+            if (dob) {
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                document.getElementById('age').value = age;
+            }
+        });
+
+        // Auto-dismiss flash messages
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.alert').forEach(a => {
+                setTimeout(() => {
+                    a.style.transition = 'opacity 0.5s ease';
+                    a.style.opacity = '0';
+                    setTimeout(() => a.style.display = 'none', 500);
+                }, 5000);
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

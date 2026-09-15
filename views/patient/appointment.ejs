@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* ========== GLOBAL RESET ========== */
+        body {
+            background: #f0f2f5;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 0;
+        }
+        .navbar-brand { font-size: 1.1rem; font-weight: 600; }
+        .navbar-text { font-size: 0.85rem; }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            border: none;
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-2px); }
+        .btn-primary { background: #667eea; border: none; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-outline-secondary { color: #667eea; border-color: #667eea; }
+        .btn-outline-secondary:hover { background: #667eea; color: white; }
+        .btn-outline-light { border-color: rgba(255,255,255,0.5); color: white; }
+        .btn-outline-light:hover { background: rgba(255,255,255,0.2); border-color: white; }
+
+        /* ========== FORM ELEMENTS ========== */
+        .form-label { font-weight: 600; color: #555; }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .form-control[readonly] {
+            background-color: #e9ecef;
+            cursor: default;
+        }
+        .alert { animation: slideDown 0.5s ease-out; }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        /* ========== STATUS BADGES ========== */
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-pending { background: #ffc107; color: #856404; }
+        .status-confirmed { background: #28a745; color: white; }
+        .status-cancelled { background: #dc3545; color: white; }
+        .status-completed { background: #17a2b8; color: white; }
+
+        .warning-highlight {
+            border-left: 4px solid #ffc107;
+            background-color: #fff3cd;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        /* ========== APPOINTMENT CARD ========== */
+        .appointment-item {
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .appointment-item:hover {
+            background: #eef1f6;
+            transform: translateX(4px);
+        }
+        .appointment-item.status-pending { border-left-color: #ffc107; }
+        .appointment-item.status-confirmed { border-left-color: #28a745; }
+        .appointment-item.status-cancelled { border-left-color: #dc3545; }
+        .appointment-item.status-completed { border-left-color: #17a2b8; }
+
+        /* ========== TABS ========== */
+        .nav-tabs {
+            border-bottom: 2px solid #e9ecef;
+            gap: 4px;
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 30px 30px 0 0;
+            font-weight: 600;
+            color: #6c757d;
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            background: transparent;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #667eea;
+            background: #f8f9fa;
+        }
+        .nav-tabs .nav-link.active {
+            color: #667eea;
+            background: #ffffff;
+            border-bottom: 3px solid #667eea;
+        }
+        .nav-tabs .nav-link i {
+            margin-right: 6px;
+        }
+        .nav-tabs .nav-link .badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            margin-left: 6px;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 575.98px) {
+            body { font-size: 13px; }
+            .container { padding-left: 12px; padding-right: 12px; }
+            .navbar-brand { font-size: 0.95rem; }
+            .navbar-text { font-size: 0.75rem; }
+            .card { border-radius: 10px; }
+            .card .p-4 { padding: 16px !important; }
+            .btn { font-size: 0.75rem; padding: 5px 12px; }
+            .btn-sm { font-size: 0.65rem; padding: 3px 8px; }
+            .status-badge { font-size: 0.7rem; padding: 3px 8px; }
+            .nav-tabs .nav-link { padding: 10px 14px; font-size: 0.8rem; }
+            .d-md-flex { flex-direction: column; gap: 8px; }
+            .d-md-flex .btn { width: 100%; }
+        }
+
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .container { padding-left: 20px; padding-right: 20px; }
+            .card .p-4 { padding: 24px !important; }
+        }
+
+        @media (min-width: 992px) {
+            .container { padding-left: 40px; padding-right: 40px; }
+            .card .p-4 { padding: 32px !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <span class="navbar-text text-white me-3">
+                            <i class="bi bi-person-circle"></i> Welcome, <%= user.name %>
+                            <span class="badge bg-light text-dark ms-2"><%= user.role %></span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/patient-dashboard" class="btn btn-outline-light btn-sm me-2">
+                            <i class="bi bi-arrow-left"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+
+        <!-- Flash Messages -->
+        <%- include('../partials/flash') %>
+
+        <!-- ========== TABS CARD ========== -->
+        <div class="card p-3 p-md-4">
+            <ul class="nav nav-tabs mb-4" id="appointmentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="true">
+                        <i class="bi bi-calendar-plus"></i> Book Appointment
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="recent-tab" data-bs-toggle="tab" data-bs-target="#recent" type="button" role="tab" aria-controls="recent" aria-selected="false">
+                        <i class="bi bi-clock-history"></i> Recent Appointments
+                        <% if (appointments && appointments.length > 0) { %>
+                            <span class="badge bg-primary"><%= appointments.length %></span>
+                        <% } %>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="appointmentTabsContent">
+
+                <!-- ========== TAB 1: APPOINTMENT DETAILS (FORM) ========== -->
+                <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+
+                    <!----<h5 class="h6 mb-3"><i class="bi bi-calendar-event"></i> Book a New Appointment</h5> --->
+
+                    <% if (!patient.phone) { %>
+                        <div class="warning-highlight mb-3">
+                            <i class="bi bi-info-circle text-warning"></i>
+                            <strong>Profile Incomplete:</strong> Please update your profile with a phone number.
+                            <a href="/patient/profile" class="alert-link">Click here to update your profile</a>
+                        </div>
+                    <% } %>
+
+                    <form action="/patient/appointment/book" method="POST" id="appointmentForm">
+                        <!-- Patient Name -->
+                        <div class="mb-3">
+                            <label for="patientName" class="form-label"><i class="bi bi-person"></i> Patient Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="patientName" name="patientName" value="<%= user.name %>" readonly>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="patientEmail" class="form-label"><i class="bi bi-envelope"></i> Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="patientEmail" name="patientEmail" value="<%= user.email %>" readonly>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="mb-3">
+                            <label for="patientPhone" class="form-label"><i class="bi bi-telephone"></i> Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="patientPhone" name="patientPhone" value="<%= patient.phone || '' %>" placeholder="Enter your phone number" <%= patient.phone ? '' : 'style="border-color: #ffc107;"' %> required>
+                            <% if (!patient.phone) { %>
+                                <small class="text-warning"><i class="bi bi-exclamation-triangle"></i> Please add your phone number to book appointments</small>
+                            <% } %>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="mb-3">
+                            <label for="date" class="form-label"><i class="bi bi-calendar-date"></i> Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="date" name="date" min="<%= new Date().toISOString().split('T')[0] %>" required>
+                        </div>
+
+                        <!-- Preferred Time Dropdown -->
+                        <div class="mb-3">
+                            <label for="time" class="form-label">
+                                <i class="bi bi-clock"></i> Preferred Time <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="time" name="time" required>
+                                <option value="">-- Select a time slot --</option>
+                                <optgroup label="Morning (8:00 – 12:00)">
+                                    <option value="08:00">08:00 AM</option>
+                                    <option value="08:30">08:30 AM</option>
+                                    <option value="09:00">09:00 AM</option>
+                                    <option value="09:30">09:30 AM</option>
+                                    <option value="10:00">10:00 AM</option>
+                                    <option value="10:30">10:30 AM</option>
+                                    <option value="11:00">11:00 AM</option>
+                                    <option value="11:30">11:30 AM</option>
+                                </optgroup>
+                                <optgroup label="Afternoon (12:00 – 17:00)">
+                                    <option value="12:00">12:00 PM</option>
+                                    <option value="12:30">12:30 PM</option>
+                                    <option value="13:00">01:00 PM</option>
+                                    <option value="13:30">01:30 PM</option>
+                                    <option value="14:00">02:00 PM</option>
+                                    <option value="14:30">02:30 PM</option>
+                                    <option value="15:00">03:00 PM</option>
+                                    <option value="15:30">03:30 PM</option>
+                                    <option value="16:00">04:00 PM</option>
+                                    <option value="16:30">04:30 PM</option>
+                                </optgroup>
+                                <optgroup label="Evening (17:00 – 19:30)">
+                                    <option value="17:00">05:00 PM</option>
+                                    <option value="17:30">05:30 PM</option>
+                                    <option value="18:00">06:00 PM</option>
+                                    <option value="18:30">06:30 PM</option>
+                                    <option value="19:00">07:00 PM</option>
+                                    <option value="19:30">07:30 PM</option>
+                                </optgroup>
+                            </select>
+                            <small class="text-muted">Choose your preferred appointment time</small>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label"><i class="bi bi-textarea"></i> Description / Reason <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Please describe the reason for your appointment…" maxlength="500" required></textarea>
+                            <small class="text-muted" id="charCount">0 / 500 characters</small>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end mt-3">
+                            <a href="/auth/patient-dashboard" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Cancel</a>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-calendar-check"></i> Book Appointment</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ========== TAB 2: RECENT APPOINTMENTS ========== -->
+                <div class="tab-pane fade" id="recent" role="tabpanel" aria-labelledby="recent-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="h6 mb-0"><i class="bi bi-clock-history"></i> Recent Appointments</h5>
+                        <% if (appointments && appointments.length > 0) { %>
+                            <span class="badge bg-secondary"><%= appointments.length %> appointment<%= appointments.length > 1 ? 's' : '' %></span>
+                        <% } %>
+                    </div>
+
+                    <% if (appointments && appointments.length > 0) { %>
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <% appointments.slice(0, 5).forEach(function(appt) { %>
+                                <div class="appointment-item status-<%= appt.status %>">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                        <div class="flex-grow-1" style="min-width: 0;">
+                                            <div class="fw-bold mb-1">
+                                                <i class="bi bi-calendar-date"></i>
+                                                <%= new Date(appt.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) %>
+                                                <span class="badge bg-secondary ms-1"><%= appt.time %></span>
+                                            </div>
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-textarea"></i>
+                                                <%= appt.description.substring(0, 80) %><%= appt.description.length > 80 ? '…' : '' %>
+                                            </small>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-end gap-2">
+                                            <span class="status-badge status-<%= appt.status %>">
+                                                <%= appt.status.charAt(0).toUpperCase() + appt.status.slice(1) %>
+                                            </span>
+                                            <a href="/patient/appointment/<%= appt._id %>" class="btn btn-sm btn-outline-primary" title="View">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+
+                        <% if (appointments.length > 5) { %>
+                            <div class="text-center mt-3">
+                                <a href="/patient/view-appointments" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-list-ul"></i> View All <%= appointments.length %> Appointments
+                                </a>
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="bi bi-calendar-x" style="font-size: 3.5rem; color: #dee2e6;"></i>
+                            <h5 class="mt-3 text-muted">No Appointments Yet</h5>
+                            <p class="text-muted">You haven't booked any appointments.</p>
+                            <button class="btn btn-primary" onclick="switchToDetailsTab()">
+                                <i class="bi bi-calendar-plus"></i> Book Your First Appointment
+                            </button>
+                        </div>
+                    <% } %>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        // Character counter
+        const description = document.getElementById('description');
+        const charCount = document.getElementById('charCount');
+        if (description) {
+            description.addEventListener('input', function() {
+                const count = this.value.length;
+                charCount.textContent = count + ' / 500 characters';
+                charCount.style.color = count > 400 ? '#dc3545' : count > 300 ? '#ffc107' : '#6c757d';
+            });
+        }
+
+        // Switch to Details tab (from empty state)
+        function switchToDetailsTab() {
+            const tab = new bootstrap.Tab(document.getElementById('details-tab'));
+            tab.show();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Form validation
+        const appointmentForm = document.getElementById('appointmentForm');
+        if (appointmentForm) {
+            appointmentForm.addEventListener('submit', function(e) {
+                const phone = document.getElementById('patientPhone').value;
+                const date = document.getElementById('date').value;
+                const time = document.getElementById('time').value;
+                const desc = document.getElementById('description').value.trim();
+
+                if (!phone.match(/^[0-9+\-\s()]{10,15}$/)) {
+                    e.preventDefault();
+                    alert('Please enter a valid phone number');
+                    return false;
+                }
+                if (!date) {
+                    e.preventDefault();
+                    alert('Please select a date');
+                    return false;
+                }
+                if (!time) {
+                    e.preventDefault();
+                    alert('Please select a time slot');
+                    return false;
+                }
+                if (!desc || desc.length < 10) {
+                    e.preventDefault();
+                    alert('Please provide a description (minimum 10 characters)');
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        // Auto-dismiss flash messages
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.alert:not(.alert-info):not(.warning-highlight)').forEach(function(a) {
+                setTimeout(function() {
+                    a.style.transition = 'opacity 0.5s ease';
+                    a.style.opacity = '0';
+                    setTimeout(function() { a.style.display = 'none'; }, 500);
+                }, 5000);
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
