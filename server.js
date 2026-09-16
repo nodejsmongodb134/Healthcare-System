@@ -310,7 +310,7 @@ app.use((err, req, res, next) => {
 // ============ HTTP Server + Socket.IO ============
 const server = http.createServer(app);
 const io = socketIo(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] }
+  cors: { origin: "https://healthcare-system-4ezz.onrender.com", methods: ['GET', 'POST'] }
 });
 
 // ============ Manual Session Sharing for Socket.IO ============
@@ -358,13 +358,26 @@ io.use((socket, next) => {
 const activeDrivers = new Map();
 
 io.on('connection', (socket) => {
-  console.log(`🔌 Socket connected: ${socket.id}`);
+  // ✅ Enhanced connection log — shows WHO connected
+  console.log(
+    `🔌 [Socket.IO] Connected: ${socket.id}`,
+    socket.driverId ? `(Driver: ${socket.driverId})` :
+    socket.userId   ? `(User: ${socket.userId}, Role: ${socket.userRole})` :
+                      '(unknown — no session)'
+  );
 
+  // ============ DRIVER LOCATION UPDATE ============
   socket.on('driver-location-update', async (data) => {
     try {
       const { latitude, longitude, accuracy, speed } = data;
       const driverId = socket.driverId;
-      if (!driverId) return;
+
+      if (!driverId) {
+        console.warn(`⚠️ [Socket.IO] Location update from socket ${socket.id} but no driverId in session`);
+        return;
+      }
+
+      console.log(`📍 [Driver] ${driverId} → ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (±${Math.round(accuracy)}m)`);
 
       activeDrivers.set(driverId, {
         socketId: socket.id,
@@ -390,9 +403,15 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ============ NURSE REQUESTS ALL DRIVERS ============
   socket.on('get-active-drivers', async () => {
     try {
-      if (socket.userRole !== 'nurse') return;
+      if (socket.userRole !== 'nurse') {
+        console.warn(`⚠️ [Socket.IO] get-active-drivers from non-nurse (role: ${socket.userRole || 'none'})`);
+        return;
+      }
+
+      console.log(`🗺️ [Nurse] ${socket.userId} requested driver list`);
 
       const allDrivers = await Driver.find().select('_id name phone status');
 
@@ -427,13 +446,21 @@ io.on('connection', (socket) => {
         };
       });
 
+      console.log(`🗺️ [Nurse] Sending ${result.length} drivers (${onlineDriverIds.length} online in memory)`);
+
       socket.emit('active-drivers-list', result);
     } catch (error) {
       console.error('❌ Get active drivers error:', error);
     }
   });
 
+  // ============ DISCONNECT ============
   socket.on('disconnect', () => {
+    console.log(
+      `🔌 [Socket.IO] Disconnected: ${socket.id}`,
+      socket.driverId ? `(Driver: ${socket.driverId})` : ''
+    );
+
     if (socket.driverId) {
       activeDrivers.delete(socket.driverId);
       io.emit('driver-disconnected', { driverId: socket.driverId });
