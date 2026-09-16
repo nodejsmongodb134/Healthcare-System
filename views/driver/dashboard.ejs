@@ -9,29 +9,12 @@
     <link rel="stylesheet" href="/css/leaflet.css">
     <style>
         * { box-sizing: border-box; }
-        body {
-            background: #f0f2f5;
-            font-size: 14px;
-            line-height: 1.5;
-            padding-bottom: 20px;
-        }
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 10px 0;
-        }
+        body { background: #f0f2f5; font-size: 14px; line-height: 1.5; padding-bottom: 20px; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 10px 0; }
         .navbar-brand { font-size: 1.1rem; font-weight: 600; }
         .navbar-text { font-size: 0.85rem; }
-        .card {
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border: none;
-        }
-        .btn {
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.8rem;
-            padding: 6px 12px;
-        }
+        .card { border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: none; }
+        .btn { border-radius: 8px; font-weight: 500; font-size: 0.8rem; padding: 6px 12px; }
         .btn-sm { font-size: 0.7rem; padding: 4px 10px; }
         .btn-primary { background: #667eea; border: none; }
         .btn-primary:hover { background: #5a67d8; }
@@ -49,111 +32,35 @@
         .alert-info { background: #e3f2fd; border: none; color: #0d47a1; }
         .alert-info h4 { font-size: 1rem; }
         .alert-info p { font-size: 0.85rem; margin-bottom: 0; }
-
-        #map {
-            height: 350px;
-            width: 100%;
-            border-radius: 10px;
-            margin-top: 8px;
-            z-index: 1;
-        }
+        #map { height: 350px; width: 100%; border-radius: 10px; margin-top: 8px; z-index: 1; }
         .leaflet-container { z-index: 1; }
-
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            display: inline-block;
-        }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 500; display: inline-block; }
         .status-pending { background: #ffc107; color: #856404; }
         .status-in-transit { background: #17a2b8; color: white; }
         .status-delivered { background: #28a745; color: white; }
         .status-cancelled { background: #dc3545; color: white; }
-
-        .priority-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: capitalize;
-            letter-spacing: 0.2px;
-            display: inline-block;
-            margin-left: 5px;
-        }
+        .priority-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: capitalize; letter-spacing: 0.2px; display: inline-block; margin-left: 5px; }
         .priority-high { background: #dc3545; color: white; }
         .priority-medium { background: #ffc107; color: #856404; }
         .priority-low { background: #17a2b8; color: white; }
-
-        .navigation-controls {
-            background: white;
-            padding: 10px 12px;
-            border-radius: 10px;
-            margin-top: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
+        .navigation-controls { background: white; padding: 10px 12px; border-radius: 10px; margin-top: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .navigation-controls .btn { font-size: 0.7rem; padding: 4px 10px; }
-        .gps-status {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-        }
+        .gps-status { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; }
         .gps-status.active { background: #28a745; color: white; }
         .gps-status.inactive { background: #dc3545; color: white; }
         .gps-status.searching { background: #ffc107; color: #856404; }
-
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .quick-actions .card {
-            text-align: center;
-            padding: 12px 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            border-radius: 10px;
-        }
+        .quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .quick-actions .card { text-align: center; padding: 12px 8px; cursor: pointer; transition: all 0.2s; border: none; border-radius: 10px; }
         .quick-actions .card:active { transform: scale(0.95); }
         .quick-actions .card i { font-size: 1.5rem; color: #667eea; margin-bottom: 4px; }
         .quick-actions .card h6 { font-size: 0.75rem; margin-bottom: 2px; font-weight: 600; }
         .quick-actions .card p { font-size: 0.65rem; color: #666; margin-bottom: 0; }
-
-        .delivery-info {
-            padding: 8px 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 6px;
-            font-size: 0.8rem;
-        }
+        .delivery-info { padding: 8px 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; }
         .delivery-info strong { font-size: 0.8rem; }
-
-        .route-info {
-            background: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-top: 8px;
-            border-left: 3px solid #28a745;
-            font-size: 0.8rem;
-        }
+        .route-info { background: white; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border-left: 3px solid #28a745; font-size: 0.8rem; }
         .route-info .row { font-size: 0.75rem; }
-
-        .column-header {
-            font-weight: 600;
-            padding: 8px 0;
-            border-bottom: 2px solid #e9ecef;
-            margin-bottom: 10px;
-            font-size: 0.85rem;
-        }
-        .column-header .count-badge {
-            float: right;
-            font-size: 0.7rem;
-            padding: 2px 10px;
-            border-radius: 20px;
-        }
-
+        .column-header { font-weight: 600; padding: 8px 0; border-bottom: 2px solid #e9ecef; margin-bottom: 10px; font-size: 0.85rem; }
+        .column-header .count-badge { float: right; font-size: 0.7rem; padding: 2px 10px; border-radius: 20px; }
         .empty-column { text-align: center; padding: 20px 10px; color: #999; }
         .empty-column i { font-size: 2rem; display: block; margin-bottom: 8px; }
         .empty-column p { font-size: 0.8rem; margin-bottom: 0; }
@@ -161,23 +68,10 @@
         .empty-state i { font-size: 3rem; color: #dee2e6; }
         .empty-state h4 { font-size: 1rem; margin-top: 10px; }
         .empty-state p { font-size: 0.85rem; color: #999; }
-
-        .driver-info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px 15px;
-            font-size: 0.8rem;
-        }
+        .driver-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; font-size: 0.8rem; }
         .driver-info-grid p { margin-bottom: 3px; }
         .driver-info-grid strong { font-size: 0.75rem; }
-
-        .voice-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 4px;
-        }
+        .voice-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
         .voice-indicator.active { background: #28a745; animation: pulse 1s ease-in-out infinite; }
         .voice-indicator.inactive { background: #dc3545; }
         @keyframes pulse {
@@ -185,7 +79,6 @@
             50% { transform: scale(1.5); opacity: 0.7; }
             100% { transform: scale(1); opacity: 1; }
         }
-
         @media (max-width: 576px) {
             body { font-size: 13px; }
             .container { padding-left: 10px; padding-right: 10px; }
@@ -204,13 +97,7 @@
             .quick-actions .card i { font-size: 1.2rem; }
             .quick-actions .card h6 { font-size: 0.65rem; }
             .quick-actions .card p { font-size: 0.55rem; }
-            .in-transit-column {
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
-                padding-right: 0;
-                padding-bottom: 15px;
-                margin-bottom: 15px;
-            }
+            .in-transit-column { border-right: none; border-bottom: 1px solid #e9ecef; padding-right: 0; padding-bottom: 15px; margin-bottom: 15px; }
             .delivered-column { padding-left: 0; }
             .column-header { font-size: 0.8rem; }
             .navigation-controls .btn { font-size: 0.6rem; padding: 3px 8px; }
@@ -536,8 +423,33 @@
         let lastEmitTime = 0;
         const EMIT_INTERVAL_MS = 2000;
 
+        // ========== SMOOTH MARKER ANIMATION ==========
+        // Called from GPS watch to make marker GLIDE instead of jump
+        function moveMarkerSmoothly(marker, newLat, newLng, duration) {
+            duration = duration || 2000;
+            const start = marker.getLatLng();
+            const end = L.latLng(newLat, newLng);
+            const startTime = performance.now();
+
+            // If movement is tiny, snap directly
+            if (start.distanceTo(end) < 1) {
+                marker.setLatLng(end);
+                return;
+            }
+
+            function step(now) {
+                const t = Math.min((now - startTime) / duration, 1);
+                // Ease-out cubic — decelerates as it arrives
+                const eased = 1 - Math.pow(1 - t, 3);
+                const lat = start.lat + (end.lat - start.lat) * eased;
+                const lng = start.lng + (end.lng - start.lng) * eased;
+                marker.setLatLng([lat, lng]);
+                if (t < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
         // ========== UNIFIED GPS WATCH ==========
-        // ONE watchPosition — updates marker AND emits to server
         function startGPSWatch() {
             if (!navigator.geolocation) {
                 console.warn('❌ Geolocation not supported');
@@ -557,9 +469,9 @@
                     currentLng = lng;
                     currentAccuracy = accuracy;
 
-                    // ---- 1. Update marker ----
+                    // ---- 1. GLIDE marker to new position (2000ms = matches emit interval) ----
                     if (currentMarker) {
-                        currentMarker.setLatLng([lat, lng]);
+                        moveMarkerSmoothly(currentMarker, lat, lng, 2000);
                         currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`);
                     }
 
@@ -637,35 +549,11 @@
                 }
             );
 
-            console.log('📍 watchPosition started (throttled to ' + EMIT_INTERVAL_MS + 'ms)');
-        }
-
-        // ========== SMOOTH MARKER ANIMATION ==========
-        function moveMarkerSmoothly(marker, newLat, newLng, duration) {
-            duration = duration || 450;
-            const start = marker.getLatLng();
-            const end = L.latLng(newLat, newLng);
-            const startTime = performance.now();
-
-            if (start.distanceTo(end) < 1) {
-                marker.setLatLng(end);
-                return;
-            }
-
-            function step(now) {
-                const t = Math.min((now - startTime) / duration, 1);
-                const eased = 1 - Math.pow(1 - t, 3);
-                const lat = start.lat + (end.lat - start.lat) * eased;
-                const lng = start.lng + (end.lng - start.lng) * eased;
-                marker.setLatLng([lat, lng]);
-                if (t < 1) requestAnimationFrame(step);
-            }
-            requestAnimationFrame(step);
+            console.log('📍 watchPosition started — smooth glide @ ' + EMIT_INTERVAL_MS + 'ms');
         }
 
         // ========== MAP INITIALIZATION ==========
         function initMap() {
-            // Try to get initial position
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
@@ -730,9 +618,8 @@
 
             setTimeout(() => { map.invalidateSize(); }, 500);
 
-            // ✅ ONLY ONE watch — this is the critical fix
             startGPSWatch();
-            console.log('🗺️ Map initialized — starting unified GPS watch');
+            console.log('🗺️ Map initialized — starting smooth GPS watch');
         }
 
         // ========== VOICE ==========
@@ -785,8 +672,9 @@
                         const accuracy = position.coords.accuracy;
 
                         map.setView([lat, lng], 17);
+                        // GLIDE quickly on manual tap (500ms)
                         if (currentMarker) {
-                            currentMarker.setLatLng([lat, lng]);
+                            moveMarkerSmoothly(currentMarker, lat, lng, 500);
                             currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`).openPopup();
                         }
                         currentLat = lat;
@@ -799,7 +687,6 @@
                         statusEl.className = 'gps-status active';
                         statusText.textContent = 'Active';
 
-                        // Manually emit one location now
                         if (socket && socket.connected) {
                             socket.emit('driver-location-update', {
                                 latitude: lat,
