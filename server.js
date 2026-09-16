@@ -404,55 +404,64 @@ io.on('connection', (socket) => {
   });
 
   // ============ NURSE REQUESTS ALL DRIVERS ============
-  socket.on('get-active-drivers', async () => {
-    try {
-      if (socket.userRole !== 'nurse') {
-        console.warn(`⚠️ [Socket.IO] get-active-drivers from non-nurse (role: ${socket.userRole || 'none'})`);
-        return;
-      }
-
-      console.log(`🗺️ [Nurse] ${socket.userId} requested driver list`);
-
-      const allDrivers = await Driver.find().select('_id name phone status');
-
-      const latestLocations = await DriverLocation.aggregate([
-        { $sort: { timestamp: -1 } },
-        { $group: { _id: '$driverId', doc: { $first: '$$ROOT' } } }
-      ]);
-
-      const locationMap = {};
-      latestLocations.forEach(item => {
-        locationMap[item._id.toString()] = item.doc;
-      });
-
-      const onlineDriverIds = Array.from(activeDrivers.keys());
-
-      const result = allDrivers.map(driver => {
-        const driverId = driver._id.toString();
-        const isOnline = onlineDriverIds.includes(driverId);
-        const loc = locationMap[driverId] || null;
-
-        return {
-          driverId: driver._id,
-          driverName: driver.name,
-          driverPhone: driver.phone,
-          status: driver.status,
-          online: isOnline,
-          latitude: loc ? loc.latitude : null,
-          longitude: loc ? loc.longitude : null,
-          accuracy: loc ? loc.accuracy : null,
-          speed: loc ? loc.speed : null,
-          lastUpdate: loc ? loc.timestamp : null
-        };
-      });
-
-      console.log(`🗺️ [Nurse] Sending ${result.length} drivers (${onlineDriverIds.length} online in memory)`);
-
-      socket.emit('active-drivers-list', result);
-    } catch (error) {
-      console.error('❌ Get active drivers error:', error);
+socket.on('get-active-drivers', async () => {
+  try {
+    if (socket.userRole !== 'nurse') {
+      console.warn(`⚠️ [Socket.IO] get-active-drivers from non-nurse (role: ${socket.userRole || 'none'})`);
+      return;
     }
-  });
+
+    console.log(`🗺️ [Nurse] ${socket.userId} requested driver list`);
+
+    const allDrivers = await Driver.find().select('_id name phone status');
+
+    const latestLocations = await DriverLocation.aggregate([
+      { $sort: { timestamp: -1 } },
+      { $group: { _id: '$driverId', doc: { $first: '$$ROOT' } } }
+    ]);
+
+    const locationMap = {};
+    latestLocations.forEach(item => {
+      locationMap[item._id.toString()] = item.doc;
+    });
+
+    // ✅ NEW: use BOTH in-memory map AND DB recency for online status
+    const onlineDriverIds = Array.from(activeDrivers.keys());
+    const ONLINE_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes — DB recent = still online
+    const now = Date.now();
+
+    const result = allDrivers.map(driver => {
+      const driverId = driver._id.toString();
+      const loc = locationMap[driverId] || null;
+
+      // Online if: socket is currently open OR last DB update < 2 min ago
+      const socketOnline = onlineDriverIds.includes(driverId);
+      const dbRecent = loc && loc.timestamp &&
+                       (now - new Date(loc.timestamp).getTime() < ONLINE_THRESHOLD_MS);
+      const isOnline = socketOnline || dbRecent;
+
+      return {
+        driverId: driver._id,
+        driverName: driver.name,
+        driverPhone: driver.phone,
+        status: driver.status,
+        online: isOnline,
+        latitude: loc ? loc.latitude : null,
+        longitude: loc ? loc.longitude : null,
+        accuracy: loc ? loc.accuracy : null,
+        speed: loc ? loc.speed : null,
+        lastUpdate: loc ? loc.timestamp : null
+      };
+    });
+
+    const onlineCount = result.filter(d => d.online).length;
+    console.log(`🗺️ [Nurse] Sending ${result.length} drivers (${onlineCount} online — socket:${onlineDriverIds.length}, db-recent:${result.filter(d => d.online && !onlineDriverIds.includes(d.driverId.toString())).length})`);
+
+    socket.emit('active-drivers-list', result);
+  } catch (error) {
+    console.error('❌ Get active drivers error:', error);
+  }
+});
 
   // ============ DISCONNECT ============
   socket.on('disconnect', () => {
