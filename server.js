@@ -11,25 +11,16 @@ const fs = require('fs');
 const MongoStore = require('connect-mongo');
 
 const {
-  requireAuth,
-  requireRole,
-  requireDriver,
-  requireAdmin,
-  requireNurse,
-  requirePatient
+  requireAuth, requireRole, requireDriver, requireAdmin,
+  requireNurse, requirePatient
 } = require('./middleware/auth');
 
 const {
-  loginLimiter,
-  registerLimiter,
-  forgotLimiter,
-  driverLoginLimiter
+  loginLimiter, registerLimiter, forgotLimiter, driverLoginLimiter
 } = require('./middleware/rateLimiter');
 
 const {
-  csrfGenerate,
-  csrfProtection,
-  invalidCsrfTokenError
+  csrfGenerate, csrfProtection, invalidCsrfTokenError
 } = require('./middleware/csrf');
 
 // ============ Models ============
@@ -95,7 +86,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// ============ TILE SERVER FOR OFFLINE MAPS ============
+// ============ TILE SERVER ============
 const tilesPath = path.join(__dirname, 'public', 'tiles');
 const hasTiles = fs.existsSync(tilesPath);
 
@@ -122,7 +113,7 @@ app.get('/api/tiles/status', (req, res) => {
 console.log(`🗺️ Offline tiles: ${hasTiles ? '✅ Available' : '❌ Not found'}`);
 
 // ============================================================
-// ============ MIDDLEWARE STACK (ORDER MATTERS) ==============
+// ============ MIDDLEWARE STACK ==============================
 // ============================================================
 
 const sessionMiddleware = session({
@@ -144,28 +135,21 @@ const sessionMiddleware = session({
 });
 
 app.use(sessionMiddleware);
-
-// ---------- 2. FLASH ----------
 app.use(flash());
-
-// ---------- 3. CSRF ----------
 app.use(csrfGenerate);
 app.use(csrfProtection);
 
-// ---------- 4. Auto-inject CSRF meta tag + script ----------
+// ---------- CSRF auto-inject ----------
 app.use((req, res, next) => {
   const originalSend = res.send.bind(res);
-
   res.send = function (body) {
     if (typeof body === 'string') {
-      // Inject meta tag in <head>
       if (body.indexOf('</head>') !== -1 && res.locals.csrfToken) {
         if (body.indexOf('name="csrf-token"') === -1) {
           const metaTag = `<meta name="csrf-token" content="${res.locals.csrfToken}">`;
           body = body.replace('</head>', `    ${metaTag}\n</head>`);
         }
       }
-      // Inject client script before </body>
       if (body.indexOf('</body>') !== -1) {
         if (body.indexOf('/js/csrf-inject.js') === -1) {
           body = body.replace('</body>', `    <script src="/js/csrf-inject.js"></script>\n</body>`);
@@ -177,7 +161,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ---------- 5. Request Logging (non-GET only) ----------
+// ---------- Request logging ----------
 app.use((req, res, next) => {
   if (req.method !== 'GET') {
     const who =
@@ -189,18 +173,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// ---------- 6. Locals & Flash ----------
+// ---------- Locals & Flash ----------
 app.use((req, res, next) => {
-  const successMsgs = req.flash('success_msg');
-  const errorMsgs   = req.flash('error_msg');
-  const warningMsgs = req.flash('warning_msg');
-  const infoMsgs    = req.flash('info_msg');
-
-  res.locals.success_msg = successMsgs.length ? successMsgs : null;
-  res.locals.error_msg   = errorMsgs.length   ? errorMsgs   : null;
-  res.locals.warning_msg = warningMsgs.length ? warningMsgs : null;
-  res.locals.info_msg    = infoMsgs.length    ? infoMsgs    : null;
-
+  res.locals.success_msg = req.flash('success_msg') || null;
+  res.locals.error_msg   = req.flash('error_msg')   || null;
+  res.locals.warning_msg = req.flash('warning_msg') || null;
+  res.locals.info_msg    = req.flash('info_msg')    || null;
   res.locals.user   = req.session.user   || null;
   res.locals.driver = req.session.driver || null;
   next();
@@ -210,23 +188,19 @@ app.use((req, res, next) => {
 // ============ ROUTE MOUNTING ================================
 // ============================================================
 
-// ---------- Rate limiters ----------
 app.post('/auth/login',    loginLimiter);
 app.post('/auth/register', registerLimiter);
 app.post('/auth/forgot',   forgotLimiter);
 app.post('/driver/login',  driverLoginLimiter);
 
-// ---------- Auth ----------
 app.use('/auth', authRoutes);
 
-// ---------- Patient ----------
 app.use('/patient', requirePatient, profileRoutes);
 app.use('/patient', requirePatient, appointmentRoutes);
 app.use('/patient', requirePatient, viewAppointmentRoutes);
 app.use('/patient', requirePatient, messageRoutes);
 app.use('/patient', requirePatient, orderRoutes);
 
-// ---------- Nurse ----------
 app.use('/nurse', requireNurse, nurseAppointmentRoutes);
 app.use('/nurse', requireNurse, nurseMessageRoutes);
 app.use('/nurse', requireNurse, createDriverRoutes);
@@ -237,10 +211,8 @@ app.use('/nurse', requireNurse, nurseSmsRoutes);
 app.use('/nurse', requireNurse, nurseTrackingRoutes);
 app.use('/nurse', requireNurse, nurseAnnouncementRoutes);
 
-// ---------- Driver ----------
 app.use('/driver', driverRoutes);
 
-// ---------- Admin ----------
 app.use('/admin', requireAdmin, adminAuditRoutes);
 app.use('/admin', requireAdmin, adminAnalyticsRoutes);
 app.use('/admin', requireAdmin, adminExportDataRoutes);
@@ -307,35 +279,46 @@ app.use((err, req, res, next) => {
   res.redirect('/');
 });
 
-// ============ HTTP Server + Socket.IO ============
+// ============================================================
+// ============ HTTP SERVER + SOCKET.IO ======================
+// ============================================================
 const server = http.createServer(app);
+
 const io = socketIo(server, {
-  cors: { origin: "https://healthcare-system-4ezz.onrender.com", methods: ['GET', 'POST'] }
+  cors: {
+    origin: [
+      "https://healthcare-system-4ezz.onrender.com",
+      "http://localhost:3000"
+    ],
+    methods: ['GET', 'POST'],
+    credentials: true
+  },
+  transports: ['websocket', 'polling'],
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  upgradeTimeout: 30000,
+  allowUpgrades: true,
+  maxHttpBufferSize: 1e6
 });
 
-// ============ Manual Session Sharing for Socket.IO ============
+// ============ Session sharing for Socket.IO ============
 io.use((socket, next) => {
   const cookieHeader = socket.handshake.headers.cookie;
   if (!cookieHeader) {
+    console.warn(`⚠️ [Socket.IO] No cookie in handshake from ${socket.id}`);
     return next(new Error('Authentication required'));
   }
 
-  let sessionId = null;
   const cookies = cookieHeader.split('; ');
-  for (let i = 0; i < cookies.length; i++) {
-    const [key, value] = cookies[i].split('=');
-    if (key === 'connect.sid') {
-      sessionId = value;
-      break;
-    }
-  }
-
-  if (!sessionId) {
+  const sidCookie = cookies.find(c => c.startsWith('connect.sid='));
+  if (!sidCookie) {
+    console.warn(`⚠️ [Socket.IO] No connect.sid cookie from ${socket.id}`);
     return next(new Error('Authentication required'));
   }
 
   sessionMiddleware(socket.handshake, {}, (err) => {
     if (err) {
+      console.error('❌ [Socket.IO] Session error:', err.message);
       return next(new Error('Authentication failed'));
     }
 
@@ -349,6 +332,7 @@ io.use((socket, next) => {
       socket.userRole = 'driver';
       next();
     } else {
+      console.warn(`⚠️ [Socket.IO] No user/driver in session for ${socket.id}`);
       next(new Error('Authentication required'));
     }
   });
@@ -358,116 +342,120 @@ io.use((socket, next) => {
 const activeDrivers = new Map();
 
 io.on('connection', (socket) => {
-  // ✅ Enhanced connection log — shows WHO connected
   console.log(
     `🔌 [Socket.IO] Connected: ${socket.id}`,
     socket.driverId ? `(Driver: ${socket.driverId})` :
     socket.userId   ? `(User: ${socket.userId}, Role: ${socket.userRole})` :
-                      '(unknown — no session)'
+                      '(unknown)'
   );
 
-  // ============ DRIVER LOCATION UPDATE ============
+  // ---- Driver: receive GPS location ----
   socket.on('driver-location-update', async (data) => {
     try {
       const { latitude, longitude, accuracy, speed } = data;
       const driverId = socket.driverId;
 
       if (!driverId) {
-        console.warn(`⚠️ [Socket.IO] Location update from socket ${socket.id} but no driverId in session`);
+        console.warn(`⚠️ [Socket.IO] Location from ${socket.id} but no driverId`);
         return;
       }
 
-      console.log(`📍 [Driver] ${driverId} → ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (±${Math.round(accuracy)}m)`);
+      if (latitude == null || longitude == null) {
+        console.warn(`⚠️ [Socket.IO] Location with null coords from ${driverId}`);
+        return;
+      }
 
+      console.log(`📍 [Driver] ${driverId} → ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (±${Math.round(accuracy || 0)}m)`);
+
+      // In-memory (fast)
       activeDrivers.set(driverId, {
         socketId: socket.id,
         latitude, longitude, accuracy, speed,
         lastUpdate: Date.now()
       });
 
+      // Broadcast to nurses (any socket can listen)
       io.emit('driver-location-update', {
         driverId, latitude, longitude, accuracy, speed,
         timestamp: Date.now()
       });
 
+      // Persist to DB (survives socket drop, TTL 5 min)
       const driver = await Driver.findById(driverId).select('name');
       if (driver) {
         DriverLocation.create({
           driverId,
           driverName: driver.name,
           latitude, longitude, accuracy, speed
-        }).catch(err => console.error('❌ DB write (non-blocking):', err.message));
+        }).catch(err => console.error('❌ DB write:', err.message));
       }
     } catch (error) {
       console.error('❌ Driver location error:', error);
     }
   });
 
-  // ============ NURSE REQUESTS ALL DRIVERS ============
-socket.on('get-active-drivers', async () => {
-  try {
-    if (socket.userRole !== 'nurse') {
-      console.warn(`⚠️ [Socket.IO] get-active-drivers from non-nurse (role: ${socket.userRole || 'none'})`);
-      return;
+  // ---- Nurse: request all drivers ----
+  socket.on('get-active-drivers', async () => {
+    try {
+      if (socket.userRole !== 'nurse') {
+        console.warn(`⚠️ [Socket.IO] get-active-drivers from non-nurse (role: ${socket.userRole || 'none'})`);
+        return;
+      }
+
+      const allDrivers = await Driver.find().select('_id name phone status');
+
+      const latestLocations = await DriverLocation.aggregate([
+        { $sort: { timestamp: -1 } },
+        { $group: { _id: '$driverId', doc: { $first: '$$ROOT' } } }
+      ]);
+
+      const locationMap = {};
+      latestLocations.forEach(item => {
+        locationMap[item._id.toString()] = item.doc;
+      });
+
+      const onlineDriverIds = Array.from(activeDrivers.keys());
+      const ONLINE_THRESHOLD_MS = 2 * 60 * 1000;   // 2 min
+      const now = Date.now();
+
+      const result = allDrivers.map(driver => {
+        const driverId = driver._id.toString();
+        const loc = locationMap[driverId] || null;
+
+        const socketOnline = onlineDriverIds.includes(driverId);
+        const dbRecent = loc && loc.timestamp &&
+                         (now - new Date(loc.timestamp).getTime() < ONLINE_THRESHOLD_MS);
+        const isOnline = socketOnline || dbRecent;
+
+        return {
+          driverId: driver._id,
+          driverName: driver.name,
+          driverPhone: driver.phone,
+          status: driver.status,
+          online: isOnline,
+          latitude: loc ? loc.latitude : null,
+          longitude: loc ? loc.longitude : null,
+          accuracy: loc ? loc.accuracy : null,
+          speed: loc ? loc.speed : null,
+          lastUpdate: loc ? loc.timestamp : null
+        };
+      });
+
+      const onlineCount = result.filter(d => d.online).length;
+      console.log(`🗺️ [Nurse] Sending ${result.length} drivers (${onlineCount} online — socket:${onlineDriverIds.length}, db-recent:${result.filter(d => d.online && !onlineDriverIds.includes(d.driverId.toString())).length})`);
+
+      socket.emit('active-drivers-list', result);
+    } catch (error) {
+      console.error('❌ Get active drivers error:', error);
     }
+  });
 
-    console.log(`🗺️ [Nurse] ${socket.userId} requested driver list`);
-
-    const allDrivers = await Driver.find().select('_id name phone status');
-
-    const latestLocations = await DriverLocation.aggregate([
-      { $sort: { timestamp: -1 } },
-      { $group: { _id: '$driverId', doc: { $first: '$$ROOT' } } }
-    ]);
-
-    const locationMap = {};
-    latestLocations.forEach(item => {
-      locationMap[item._id.toString()] = item.doc;
-    });
-
-    // ✅ NEW: use BOTH in-memory map AND DB recency for online status
-    const onlineDriverIds = Array.from(activeDrivers.keys());
-    const ONLINE_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes — DB recent = still online
-    const now = Date.now();
-
-    const result = allDrivers.map(driver => {
-      const driverId = driver._id.toString();
-      const loc = locationMap[driverId] || null;
-
-      // Online if: socket is currently open OR last DB update < 2 min ago
-      const socketOnline = onlineDriverIds.includes(driverId);
-      const dbRecent = loc && loc.timestamp &&
-                       (now - new Date(loc.timestamp).getTime() < ONLINE_THRESHOLD_MS);
-      const isOnline = socketOnline || dbRecent;
-
-      return {
-        driverId: driver._id,
-        driverName: driver.name,
-        driverPhone: driver.phone,
-        status: driver.status,
-        online: isOnline,
-        latitude: loc ? loc.latitude : null,
-        longitude: loc ? loc.longitude : null,
-        accuracy: loc ? loc.accuracy : null,
-        speed: loc ? loc.speed : null,
-        lastUpdate: loc ? loc.timestamp : null
-      };
-    });
-
-    const onlineCount = result.filter(d => d.online).length;
-    console.log(`🗺️ [Nurse] Sending ${result.length} drivers (${onlineCount} online — socket:${onlineDriverIds.length}, db-recent:${result.filter(d => d.online && !onlineDriverIds.includes(d.driverId.toString())).length})`);
-
-    socket.emit('active-drivers-list', result);
-  } catch (error) {
-    console.error('❌ Get active drivers error:', error);
-  }
-});
-
-  // ============ DISCONNECT ============
-  socket.on('disconnect', () => {
+  // ---- Disconnect ----
+  socket.on('disconnect', (reason) => {
     console.log(
       `🔌 [Socket.IO] Disconnected: ${socket.id}`,
-      socket.driverId ? `(Driver: ${socket.driverId})` : ''
+      socket.driverId ? `(Driver: ${socket.driverId})` : '',
+      `— ${reason}`
     );
 
     if (socket.driverId) {
@@ -483,8 +471,8 @@ app.set('io', io);
 const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
-  server.listen(PORT,'0.0.0.0', () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
     console.log(`🔒 Security: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'} mode`);
   });
 }
