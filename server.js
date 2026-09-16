@@ -9,6 +9,7 @@ const socketIo = require('socket.io');
 const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const MongoStore = require('connect-mongo');
+const compression = require('compression');
 
 const {
   requireAuth, requireRole, requireDriver, requireAdmin,
@@ -64,6 +65,21 @@ const app = express();
 // ============ TRUST PROXY (required for Render HTTPS) ============
 app.set('trust proxy', 1);
 
+// ============ REQUEST TIMEOUT (protects server from slow clients) ============
+app.use((req, res, next) => {
+  const TIMEOUT_MS = 45000;   // 45s — generous for uploads on slow links
+  const timer = setTimeout(() => {
+    if (!res.headersSent) {
+      console.warn(`⏱ Request timeout: ${req.method} ${req.originalUrl}`);
+      res.status(503).json({ error: 'Request timeout' });
+    }
+  }, TIMEOUT_MS);
+
+  res.on('finish', () => clearTimeout(timer));
+  res.on('close', () => clearTimeout(timer));
+  next();
+});
+
 // ============ MongoDB ============
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected successfully'))
@@ -75,16 +91,33 @@ mongoose.connect(process.env.MONGODB_URI)
 // ============ View Engine ============
 app.set('view engine', 'ejs');
 
+// ============ Response Compression (smaller payloads on slow links) ============
+app.use(compression({
+  level: 6,
+  threshold: 1024,           // only compress > 1 KB
+  filter: (req, res) => {
+    const ct = res.getHeader('Content-Type');
+    if (ct && /image|video|font/i.test(ct)) return false;
+    return compression.filter(req, res);
+  }
+}));
+
 // ============ Body Parser ============
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 // ============ Cookie Parser ============
 app.use(cookieParser());
 
 // ============ Static Files ============
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '7d',              // browsers cache static files for 7 days
+  etag: true
+}));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
+  maxAge: '1d',
+  etag: true
+}));
 
 // ============ TILE SERVER ============
 const tilesPath = path.join(__dirname, 'public', 'tiles');
@@ -95,6 +128,7 @@ app.get('/tiles/:z/:x/:y.png', (req, res) => {
   const tilePath = path.join(tilesPath, z, x, `${y}.png`);
 
   if (fs.existsSync(tilePath)) {
+    res.set('Cache-Control', 'public, max-age=604800');   // 7 days
     res.sendFile(tilePath);
   } else {
     const blankPNG = Buffer.from(
@@ -116,21 +150,27 @@ console.log(`🗺️ Offline tiles: ${hasTiles ? '✅ Available' : '❌ Not foun
 // ============ MIDDLEWARE STACK ==============================
 // ============================================================
 
+// ---------- SESSION (with poor-network resilience) ----------
 const sessionMiddleware = session({
+  name: 'connect.sid',
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: true,
+  rolling: true,                              // refresh cookie on every request
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
     collectionName: 'sessions',
-    ttl: 3600,
-    autoRemove: 'native'
+    ttl: 3600,                                // 1 hour
+    autoRemove: 'native',
+    touchAfter: 300                           // only write to DB every 5 min
   }),
+  proxy: true,
   cookie: {
     maxAge: 3600000,
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production'
+    secure: process.env.NODE_ENV === 'production',
+    path: '/'
   }
 });
 
@@ -139,20 +179,32 @@ app.use(flash());
 app.use(csrfGenerate);
 app.use(csrfProtection);
 
-// ---------- CSRF auto-inject ----------
+// ---------- CSRF auto-inject + global scripts ----------
 app.use((req, res, next) => {
   const originalSend = res.send.bind(res);
+
   res.send = function (body) {
     if (typeof body === 'string') {
+      // Inject CSRF meta tag in <head>
       if (body.indexOf('</head>') !== -1 && res.locals.csrfToken) {
         if (body.indexOf('name="csrf-token"') === -1) {
           const metaTag = `<meta name="csrf-token" content="${res.locals.csrfToken}">`;
           body = body.replace('</head>', `    ${metaTag}\n</head>`);
         }
       }
+
+      // Inject all global scripts before </body>
       if (body.indexOf('</body>') !== -1) {
-        if (body.indexOf('/js/csrf-inject.js') === -1) {
-          body = body.replace('</body>', `    <script src="/js/csrf-inject.js"></script>\n</body>`);
+        const scripts = [
+          '/js/net.js',             // 1. patches fetch first
+          '/js/network-status.js',  // 2. banner + spinner
+          '/js/upload.js',          // 3. upload warnings
+          '/js/csrf-inject.js'      // 4. CSRF tokens (uses patched fetch)
+        ];
+        for (const src of scripts) {
+          if (body.indexOf(src) === -1) {
+            body = body.replace('</body>', `    <script src="${src}"></script>\n</body>`);
+          }
         }
       }
     }
@@ -161,7 +213,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ---------- Request logging ----------
+// ---------- Request logging (non-GET only) ----------
 app.use((req, res, next) => {
   if (req.method !== 'GET') {
     const who =
@@ -294,11 +346,14 @@ const io = socketIo(server, {
     credentials: true
   },
   transports: ['websocket', 'polling'],
-  pingTimeout: 60000,
-  pingInterval: 25000,
-  upgradeTimeout: 30000,
+  // ⭐ TUNED FOR POOR NETWORKS
+  pingTimeout: 120000,          // 2 min — tolerate slow RTT
+  pingInterval: 30000,          // ping every 30s
+  upgradeTimeout: 60000,        // allow 60s to upgrade
+  connectTimeout: 45000,        // 45s to establish connection
   allowUpgrades: true,
-  maxHttpBufferSize: 1e6
+  maxHttpBufferSize: 1e6,
+  perMessageDeflate: false      // saves CPU + bandwidth
 });
 
 // ============ Session sharing for Socket.IO ============
@@ -365,18 +420,26 @@ io.on('connection', (socket) => {
         return;
       }
 
-      console.log(`📍 [Driver] ${driverId} → ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (±${Math.round(accuracy || 0)}m)`);
+      // Round to 5 decimals (~1m precision) — saves bandwidth on slow links
+      const roundedLat = Math.round(latitude * 100000) / 100000;
+      const roundedLng = Math.round(longitude * 100000) / 100000;
+
+      console.log(`📍 [Driver] ${driverId} → ${roundedLat}, ${roundedLng} (±${Math.round(accuracy || 0)}m)`);
 
       // In-memory (fast)
       activeDrivers.set(driverId, {
         socketId: socket.id,
-        latitude, longitude, accuracy, speed,
+        latitude: roundedLat,
+        longitude: roundedLng,
+        accuracy, speed,
         lastUpdate: Date.now()
       });
 
-      // Broadcast to nurses (any socket can listen)
+      // Broadcast to nurses (compact payload)
       io.emit('driver-location-update', {
-        driverId, latitude, longitude, accuracy, speed,
+        driverId,
+        latitude: roundedLat,
+        longitude: roundedLng,
         timestamp: Date.now()
       });
 
@@ -386,7 +449,9 @@ io.on('connection', (socket) => {
         DriverLocation.create({
           driverId,
           driverName: driver.name,
-          latitude, longitude, accuracy, speed
+          latitude: roundedLat,
+          longitude: roundedLng,
+          accuracy, speed
         }).catch(err => console.error('❌ DB write:', err.message));
       }
     } catch (error) {
@@ -415,7 +480,7 @@ io.on('connection', (socket) => {
       });
 
       const onlineDriverIds = Array.from(activeDrivers.keys());
-      const ONLINE_THRESHOLD_MS = 2 * 60 * 1000;   // 2 min
+      const ONLINE_THRESHOLD_MS = 2 * 60 * 1000;
       const now = Date.now();
 
       const result = allDrivers.map(driver => {
