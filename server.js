@@ -120,6 +120,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
 }));
 
 // ============ TILE SERVER ============
+
 const tilesPath = path.join(__dirname, 'public', 'tiles');
 const hasTiles = fs.existsSync(tilesPath);
 
@@ -127,8 +128,10 @@ app.get('/tiles/:z/:x/:y.png', (req, res) => {
   const { z, x, y } = req.params;
   const tilePath = path.join(tilesPath, z, x, `${y}.png`);
 
+  // Set cache header for BOTH branches
+  res.set('Cache-Control', 'public, max-age=604800');   // ✅ move up here
+
   if (fs.existsSync(tilePath)) {
-    res.set('Cache-Control', 'public, max-age=604800');   // 7 days
     res.sendFile(tilePath);
   } else {
     const blankPNG = Buffer.from(
@@ -536,7 +539,7 @@ app.set('io', io);
 const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
-  server.listen(PORT, '0.0.0.0', () => {
+  server.listen(PORT,'0.0.0.0' () => {
     console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
     console.log(`🔒 Security: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'} mode`);
   });
