@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><%= title %></title>
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- LOCAL Leaflet CSS -->
     <link rel="stylesheet" href="/css/leaflet.css">
     <style>
-        /* ========== GLOBAL RESET & BASE ========== */
         * { box-sizing: border-box; }
         body {
             background: #f0f2f5;
@@ -54,7 +50,6 @@
         .alert-info h4 { font-size: 1rem; }
         .alert-info p { font-size: 0.85rem; margin-bottom: 0; }
 
-        /* ========== MAP ========== */
         #map {
             height: 350px;
             width: 100%;
@@ -64,7 +59,6 @@
         }
         .leaflet-container { z-index: 1; }
 
-        /* ========== STATUS BADGE ========== */
         .status-badge {
             padding: 4px 10px;
             border-radius: 20px;
@@ -77,7 +71,6 @@
         .status-delivered { background: #28a745; color: white; }
         .status-cancelled { background: #dc3545; color: white; }
 
-        /* ========== PRIORITY BADGE ========== */
         .priority-badge {
             padding: 4px 10px;
             border-radius: 20px;
@@ -92,7 +85,6 @@
         .priority-medium { background: #ffc107; color: #856404; }
         .priority-low { background: #17a2b8; color: white; }
 
-        /* ========== NAVIGATION CONTROLS ========== */
         .navigation-controls {
             background: white;
             padding: 10px 12px;
@@ -110,7 +102,6 @@
         .gps-status.inactive { background: #dc3545; color: white; }
         .gps-status.searching { background: #ffc107; color: #856404; }
 
-        /* ========== QUICK ACTIONS ========== */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -130,7 +121,6 @@
         .quick-actions .card h6 { font-size: 0.75rem; margin-bottom: 2px; font-weight: 600; }
         .quick-actions .card p { font-size: 0.65rem; color: #666; margin-bottom: 0; }
 
-        /* ========== DELIVERY INFO ========== */
         .delivery-info {
             padding: 8px 12px;
             background: #f8f9fa;
@@ -140,7 +130,6 @@
         }
         .delivery-info strong { font-size: 0.8rem; }
 
-        /* ========== ROUTE INFO ========== */
         .route-info {
             background: white;
             padding: 8px 12px;
@@ -151,7 +140,6 @@
         }
         .route-info .row { font-size: 0.75rem; }
 
-        /* ========== COLUMN HEADERS ========== */
         .column-header {
             font-weight: 600;
             padding: 8px 0;
@@ -166,7 +154,6 @@
             border-radius: 20px;
         }
 
-        /* ========== EMPTY STATES ========== */
         .empty-column { text-align: center; padding: 20px 10px; color: #999; }
         .empty-column i { font-size: 2rem; display: block; margin-bottom: 8px; }
         .empty-column p { font-size: 0.8rem; margin-bottom: 0; }
@@ -175,7 +162,6 @@
         .empty-state h4 { font-size: 1rem; margin-top: 10px; }
         .empty-state p { font-size: 0.85rem; color: #999; }
 
-        /* ========== DRIVER INFO GRID ========== */
         .driver-info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -185,7 +171,6 @@
         .driver-info-grid p { margin-bottom: 3px; }
         .driver-info-grid strong { font-size: 0.75rem; }
 
-        /* ========== VOICE INDICATOR ========== */
         .voice-indicator {
             display: inline-block;
             width: 8px;
@@ -201,7 +186,6 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* ========== RESPONSIVE TWEAKS ========== */
         @media (max-width: 576px) {
             body { font-size: 13px; }
             .container { padding-left: 10px; padding-right: 10px; }
@@ -269,7 +253,6 @@
 </head>
 <body>
 
-    <!-- ========== NAVBAR ========== -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="#"><i class="bi bi-truck"></i> Driver Portal</a>
@@ -297,7 +280,6 @@
     </nav>
 
     <div class="container mt-2 mt-sm-3">
-        <!-- Header -->
         <div class="row">
             <div class="col-12">
                 <div class="alert alert-info d-flex align-items-center">
@@ -310,11 +292,8 @@
             </div>
         </div>
 
-        <!--------- Flash Messages -------------->
-
         <%- include('../partials/flash') %>
 
-        <!-- Quick Actions -->
         <div class="quick-actions">
             <a href="/driver/dashboard" class="card text-decoration-none">
                 <i class="bi bi-house"></i>
@@ -333,7 +312,6 @@
             </a>
         </div>
 
-        <!-- GPS Status -->
         <div class="row mt-2">
             <div class="col-12">
                 <div class="navigation-controls">
@@ -362,7 +340,6 @@
             </div>
         </div>
 
-        <!-- Map Section -->
         <div class="row mt-2">
             <div class="col-12">
                 <div class="card p-2 p-sm-3" style="position: relative;">
@@ -405,7 +382,6 @@
             </div>
         </div>
 
-        <!-- Deliveries -->
         <div class="row mt-2">
             <div class="col-12">
                 <div class="card p-2 p-sm-3 deliveries-section">
@@ -518,7 +494,6 @@
             </div>
         </div>
 
-        <!-- Driver Information -->
         <div class="row mt-2">
             <div class="col-12">
                 <div class="card p-2 p-sm-3">
@@ -534,15 +509,23 @@
         </div>
     </div>
 
-    <!-- ========== SCRIPTS ========== -->
-    <!-- LOCAL Leaflet JS -->
     <script src="/js/leaflet.js"></script>
-    <!-- Socket.io Client (single load) -->
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.2/dist/socket.io.min.js"></script>
 
     <script>
         // ========== SOCKET.IO (single declaration) ==========
         const socket = io();
+
+        // Connection state logging
+        socket.on('connect', () => {
+            console.log('✅ [Socket.IO] Connected — id:', socket.id);
+        });
+        socket.on('disconnect', (reason) => {
+            console.warn('⚠️ [Socket.IO] Disconnected:', reason);
+        });
+        socket.on('connect_error', (err) => {
+            console.error('❌ [Socket.IO] Connection error:', err.message);
+        });
 
         // ========== MAP SETUP ==========
         let map;
@@ -560,14 +543,14 @@
         let currentAccuracy = 0;
         let locationFound = false;
 
-        // ========== LOCATION SENDER (throttled + smooth) ==========
+        // ========== LOCATION SENDER ==========
         let locationInterval = null;
         let lastEmitTime = 0;
-        const EMIT_INTERVAL_MS = 500;
+        const EMIT_INTERVAL_MS = 2000;   // 2 seconds — mobile-friendly
 
         function startLocationUpdates() {
             if (!navigator.geolocation) {
-                console.warn('Geolocation not supported');
+                console.warn('❌ Geolocation not supported');
                 return;
             }
 
@@ -586,21 +569,30 @@
                         speed: position.coords.speed || 0,
                         timestamp: now
                     };
-                    socket.emit('driver-location-update', data);
 
-                    if (typeof currentMarker !== 'undefined' && currentMarker) {
-                        moveMarkerSmoothly(
-                            currentMarker,
-                            data.latitude,
-                            data.longitude,
-                            450
-                        );
+                    // ✅ Emit only when socket is connected
+                    if (socket && socket.connected) {
+                        socket.emit('driver-location-update', data);
+                        console.log('📍 Sent:', data.latitude.toFixed(5), data.longitude.toFixed(5), '±' + Math.round(data.accuracy) + 'm');
+                    } else {
+                        console.warn('⚠️ Socket not connected — skipping emit');
+                    }
+
+                    // Smooth local marker
+                    if (currentMarker) {
+                        moveMarkerSmoothly(currentMarker, data.latitude, data.longitude, 450);
                     }
                 },
-                (err) => console.warn('GPS error:', err.message),
+                (err) => {
+                    console.error('❌ GPS error:', err.code, err.message);
+                    // 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
+                    if (err.code === 1) {
+                        console.error('   → Driver must allow location permission');
+                    }
+                },
                 {
                     enableHighAccuracy: true,
-                    timeout: 1000,
+                    timeout: 15000,
                     maximumAge: 0
                 }
             );
@@ -646,7 +638,7 @@
                         document.getElementById('gpsStatus').className = 'gps-status active';
                     },
                     function(error) {
-                        console.warn('Could not get initial location, using default:', error);
+                        console.warn('Could not get initial location:', error.message);
                         setupMap(-22.5609, 17.0658);
                         document.getElementById('currentLocation').textContent = '📍 Click "My Location" to get GPS';
                     },
@@ -716,8 +708,10 @@
                         currentLat = lat;
                         currentLng = lng;
                         currentAccuracy = accuracy;
-                        currentMarker.setLatLng([lat, lng]);
-                        currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`).openPopup();
+                        if (currentMarker) {
+                            currentMarker.setLatLng([lat, lng]);
+                            currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`).openPopup();
+                        }
                         map.eachLayer(function(layer) {
                             if (layer instanceof L.Circle) map.removeLayer(layer);
                         });
@@ -756,7 +750,7 @@
                         if (isNavigating) map.setView([lat, lng], 17);
                     },
                     function(error) {
-                        console.error('GPS watch error:', error);
+                        console.error('❌ GPS watch error:', error.code, error.message);
                         document.getElementById('gpsStatus').className = 'gps-status inactive';
                         document.getElementById('gpsStatusText').textContent = 'Error';
                     },
@@ -765,7 +759,7 @@
             }
         }
 
-        // ========== VOICE & NAVIGATION FUNCTIONS ==========
+        // ========== VOICE & NAVIGATION ==========
         function speakText(text) {
             if (!voiceEnabled) return;
             if ('speechSynthesis' in window) {
@@ -786,7 +780,6 @@
 
         function toggleVoice() {
             voiceEnabled = !voiceEnabled;
-            const btn = document.getElementById('voiceToggleBtn');
             const indicator = document.getElementById('voiceIndicator');
             const status = document.getElementById('voiceStatus');
             if (voiceEnabled) {
@@ -813,8 +806,10 @@
                         const lng = position.coords.longitude;
                         const accuracy = position.coords.accuracy;
                         map.setView([lat, lng], 17);
-                        currentMarker.setLatLng([lat, lng]);
-                        currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`).openPopup();
+                        if (currentMarker) {
+                            currentMarker.setLatLng([lat, lng]);
+                            currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`).openPopup();
+                        }
                         currentLat = lat;
                         currentLng = lng;
                         locationFound = true;
@@ -953,7 +948,7 @@
         function resetMapView() {
             if (currentLat && currentLng) {
                 map.setView([currentLat, currentLng], 14);
-                currentMarker.bindPopup('📍 Your Location').openPopup();
+                if (currentMarker) currentMarker.bindPopup('📍 Your Location').openPopup();
             }
         }
 
@@ -994,11 +989,19 @@
             }
         }
 
-        // ========== SOCKET LISTENER (single, reuses const socket above) ==========
+        // ========== DEBOUNCED RELOAD ON ORDER UPDATE ==========
+        // Prevents rapid reload loop when multiple order events fire
+        let _lastOrderReload = 0;
         socket.on('data-updated', (data) => {
             if (data.type === 'order') {
-                console.log('📦 Order updated, refreshing page...');
-                window.location.reload();
+                const now = Date.now();
+                if (now - _lastOrderReload < 10000) {
+                    console.log('📦 Order update ignored (debounced — reload happened <10s ago)');
+                    return;
+                }
+                _lastOrderReload = now;
+                console.log('📦 Order updated — reloading in 500ms...');
+                setTimeout(() => window.location.reload(), 500);
             }
         });
 
@@ -1021,14 +1024,11 @@
         });
     </script>
 
-    <!-- Hidden form for status updates -->
     <form id="statusForm" action="/driver/order/status" method="POST" style="display:none;">
         <input type="hidden" id="statusOrderId" name="orderId">
         <input type="hidden" id="statusValue" name="status">
     </form>
 
-    <!-- Bootstrap JS bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
