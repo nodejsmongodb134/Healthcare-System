@@ -219,8 +219,6 @@
             .gps-status { font-size: 0.7rem; padding: 3px 8px; }
             .alert-info h4 { font-size: 0.9rem; }
             .alert-info p { font-size: 0.75rem; }
-            .compass-container { width: 32px; height: 32px; bottom: 10px; right: 10px; }
-            .compass-icon { font-size: 16px; }
             .delivery-info { font-size: 0.7rem; padding: 6px 10px; }
             .delivery-info strong { font-size: 0.7rem; }
             .route-info { font-size: 0.7rem; padding: 6px 10px; }
@@ -345,12 +343,6 @@
                 <div class="card p-2 p-sm-3" style="position: relative;">
                     <h6 class="mb-1"><i class="bi bi-map"></i> Navigation Map</h6>
                     <div id="map"></div>
-                    <button class="my-location-btn" onclick="getCurrentLocation()" title="Go to my location">
-                        <i class="bi bi-crosshair" style="color: #667eea;"></i> My Location
-                    </button>
-                    <div class="compass-container" onclick="resetMapView()" title="Reset View">
-                        <i class="bi bi-compass compass-icon"></i>
-                    </div>
                     <div class="row mt-2 g-2">
                         <div class="col-6">
                             <div class="delivery-info">
@@ -513,10 +505,9 @@
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.2/dist/socket.io.min.js"></script>
 
     <script>
-        // ========== SOCKET.IO (single declaration) ==========
+        // ========== SOCKET.IO ==========
         const socket = io();
 
-        // Connection state logging
         socket.on('connect', () => {
             console.log('✅ [Socket.IO] Connected — id:', socket.id);
         });
@@ -527,7 +518,7 @@
             console.error('❌ [Socket.IO] Connection error:', err.message);
         });
 
-        // ========== MAP SETUP ==========
+        // ========== STATE ==========
         let map;
         let currentMarker;
         let destinationMarker;
@@ -542,13 +533,12 @@
         let announcementCount = 0;
         let currentAccuracy = 0;
         let locationFound = false;
-
-        // ========== LOCATION SENDER ==========
-        let locationInterval = null;
         let lastEmitTime = 0;
-        const EMIT_INTERVAL_MS = 2000;   // 2 seconds — mobile-friendly
+        const EMIT_INTERVAL_MS = 2000;
 
-        function startLocationUpdates() {
+        // ========== UNIFIED GPS WATCH ==========
+        // ONE watchPosition — updates marker AND emits to server
+        function startGPSWatch() {
             if (!navigator.geolocation) {
                 console.warn('❌ Geolocation not supported');
                 return;
@@ -557,38 +547,88 @@
             if (watchId !== null) navigator.geolocation.clearWatch(watchId);
 
             watchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    const now = Date.now();
-                    if (now - lastEmitTime < EMIT_INTERVAL_MS) return;
-                    lastEmitTime = now;
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    const speed = position.coords.speed || 0;
 
-                    const data = {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                        accuracy: position.coords.accuracy,
-                        speed: position.coords.speed || 0,
-                        timestamp: now
-                    };
+                    currentLat = lat;
+                    currentLng = lng;
+                    currentAccuracy = accuracy;
 
-                    // ✅ Emit only when socket is connected
-                    if (socket && socket.connected) {
-                        socket.emit('driver-location-update', data);
-                        console.log('📍 Sent:', data.latitude.toFixed(5), data.longitude.toFixed(5), '±' + Math.round(data.accuracy) + 'm');
-                    } else {
-                        console.warn('⚠️ Socket not connected — skipping emit');
+                    // ---- 1. Update marker ----
+                    if (currentMarker) {
+                        currentMarker.setLatLng([lat, lng]);
+                        currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`);
                     }
 
-                    // Smooth local marker
-                    if (currentMarker) {
-                        moveMarkerSmoothly(currentMarker, data.latitude, data.longitude, 450);
+                    // ---- 2. Update accuracy circle ----
+                    map.eachLayer(function(layer) {
+                        if (layer instanceof L.Circle) map.removeLayer(layer);
+                    });
+                    L.circle([lat, lng], {
+                        color: '#667eea',
+                        fillColor: '#667eea',
+                        fillOpacity: 0.1,
+                        radius: accuracy
+                    }).addTo(map);
+
+                    // ---- 3. Update UI ----
+                    document.getElementById('currentLocation').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    document.getElementById('locationCoords').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                    document.getElementById('accuracyDisplay').textContent = `Accuracy: ${Math.round(accuracy)}m`;
+
+                    let statusText = 'Poor';
+                    if (accuracy < 20) statusText = 'Excellent';
+                    else if (accuracy < 50) statusText = 'Good';
+                    else if (accuracy < 100) statusText = 'Fair';
+                    document.getElementById('gpsStatusText').textContent = statusText;
+                    document.getElementById('gpsStatus').className = 'gps-status active';
+
+                    // ---- 4. Emit to server (throttled) ----
+                    const now = Date.now();
+                    if (now - lastEmitTime >= EMIT_INTERVAL_MS) {
+                        lastEmitTime = now;
+                        if (socket && socket.connected) {
+                            socket.emit('driver-location-update', {
+                                latitude: lat,
+                                longitude: lng,
+                                accuracy: accuracy,
+                                speed: speed,
+                                timestamp: now
+                            });
+                            console.log('📍 Sent:', lat.toFixed(5), lng.toFixed(5), '±' + Math.round(accuracy) + 'm');
+                        } else {
+                            console.warn('⚠️ Socket not connected — skipping emit');
+                        }
+                    }
+
+                    // ---- 5. Navigation logic ----
+                    if (isNavigating && destLat && destLng) {
+                        const distance = calculateDistance(lat, lng, destLat, destLng);
+                        showRoute(lat, lng, destLat, destLng);
+                        updateDirection(lat, lng, destLat, destLng);
+                        if (voiceEnabled) {
+                            if (distance < 1 && distance > 0.1 && announcementCount % 5 === 0) {
+                                speakText(`You are ${Math.round(distance * 1000)} meters from your destination`);
+                            } else if (distance <= 0.1 && distance > 0.01) {
+                                speakText(`You have arrived at your destination`);
+                            } else if (distance > 1 && Math.round(distance) % 5 === 0 && announcementCount % 10 === 0) {
+                                speakText(`You are ${Math.round(distance)} kilometers from your destination`);
+                            }
+                            announcementCount++;
+                        }
+                        map.setView([lat, lng], 17);
                     }
                 },
-                (err) => {
-                    console.error('❌ GPS error:', err.code, err.message);
-                    // 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
-                    if (err.code === 1) {
+                function(error) {
+                    console.error('❌ GPS error:', error.code, error.message);
+                    if (error.code === 1) {
                         console.error('   → Driver must allow location permission');
                     }
+                    document.getElementById('gpsStatus').className = 'gps-status inactive';
+                    document.getElementById('gpsStatusText').textContent = 'Error';
                 },
                 {
                     enableHighAccuracy: true,
@@ -601,7 +641,8 @@
         }
 
         // ========== SMOOTH MARKER ANIMATION ==========
-        function moveMarkerSmoothly(marker, newLat, newLng, duration = 450) {
+        function moveMarkerSmoothly(marker, newLat, newLng, duration) {
+            duration = duration || 450;
             const start = marker.getLatLng();
             const end = L.latLng(newLat, newLng);
             const startTime = performance.now();
@@ -624,16 +665,15 @@
 
         // ========== MAP INITIALIZATION ==========
         function initMap() {
+            // Try to get initial position
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        currentLat = lat;
-                        currentLng = lng;
-                        setupMap(lat, lng);
-                        document.getElementById('currentLocation').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                        document.getElementById('locationCoords').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                        currentLat = position.coords.latitude;
+                        currentLng = position.coords.longitude;
+                        setupMap(currentLat, currentLng);
+                        document.getElementById('currentLocation').textContent = `${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}`;
+                        document.getElementById('locationCoords').textContent = `Lat: ${currentLat.toFixed(6)}, Lng: ${currentLng.toFixed(6)}`;
                         document.getElementById('gpsStatusText').textContent = 'Active';
                         document.getElementById('gpsStatus').className = 'gps-status active';
                     },
@@ -658,8 +698,6 @@
         }
 
         function setupMap(lat, lng) {
-            const tileUrl = '/tiles/{z}/{x}/{y}.png';
-
             map = L.map('map', {
                 center: [lat, lng],
                 zoom: 14,
@@ -667,7 +705,7 @@
                 attributionControl: true
             });
 
-            L.tileLayer(tileUrl, {
+            L.tileLayer('/tiles/{z}/{x}/{y}.png', {
                 attribution: 'Offline Map',
                 maxZoom: 19,
                 maxNativeZoom: 16,
@@ -692,74 +730,12 @@
 
             setTimeout(() => { map.invalidateSize(); }, 500);
 
+            // ✅ ONLY ONE watch — this is the critical fix
             startGPSWatch();
-            console.log('🗺️ Map initialized with offline tiles – no external requests.');
+            console.log('🗺️ Map initialized — starting unified GPS watch');
         }
 
-        function startGPSWatch() {
-            if (navigator.geolocation) {
-                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-                watchId = navigator.geolocation.watchPosition(
-                    function(position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        const accuracy = position.coords.accuracy;
-                        const speed = position.coords.speed || 0;
-                        currentLat = lat;
-                        currentLng = lng;
-                        currentAccuracy = accuracy;
-                        if (currentMarker) {
-                            currentMarker.setLatLng([lat, lng]);
-                            currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`).openPopup();
-                        }
-                        map.eachLayer(function(layer) {
-                            if (layer instanceof L.Circle) map.removeLayer(layer);
-                        });
-                        L.circle([lat, lng], {
-                            color: '#667eea',
-                            fillColor: '#667eea',
-                            fillOpacity: 0.1,
-                            radius: accuracy
-                        }).addTo(map);
-                        document.getElementById('currentLocation').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                        document.getElementById('locationCoords').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
-                        document.getElementById('accuracyDisplay').textContent = `Accuracy: ${Math.round(accuracy)}m`;
-                        let statusText = '';
-                        if (accuracy < 20) statusText = 'Excellent';
-                        else if (accuracy < 50) statusText = 'Good';
-                        else if (accuracy < 100) statusText = 'Fair';
-                        else statusText = 'Poor';
-                        document.getElementById('gpsStatusText').textContent = statusText;
-                        document.getElementById('gpsStatus').className = 'gps-status active';
-
-                        if (isNavigating && destLat && destLng) {
-                            const distance = calculateDistance(lat, lng, destLat, destLng);
-                            showRoute(lat, lng, destLat, destLng);
-                            updateDirection(lat, lng, destLat, destLng);
-                            if (voiceEnabled) {
-                                if (distance < 1 && distance > 0.1 && announcementCount % 5 === 0) {
-                                    speakText(`You are ${Math.round(distance * 1000)} meters from your destination`);
-                                } else if (distance <= 0.1 && distance > 0.01) {
-                                    speakText(`You have arrived at your destination`);
-                                } else if (distance > 1 && Math.round(distance) % 5 === 0 && announcementCount % 10 === 0) {
-                                    speakText(`You are ${Math.round(distance)} kilometers from your destination`);
-                                }
-                                announcementCount++;
-                            }
-                        }
-                        if (isNavigating) map.setView([lat, lng], 17);
-                    },
-                    function(error) {
-                        console.error('❌ GPS watch error:', error.code, error.message);
-                        document.getElementById('gpsStatus').className = 'gps-status inactive';
-                        document.getElementById('gpsStatusText').textContent = 'Error';
-                    },
-                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-                );
-            }
-        }
-
-        // ========== VOICE & NAVIGATION ==========
+        // ========== VOICE ==========
         function speakText(text) {
             if (!voiceEnabled) return;
             if ('speechSynthesis' in window) {
@@ -793,18 +769,21 @@
             }
         }
 
+        // ========== MANUAL LOCATION FETCH ==========
         function getCurrentLocation() {
             const statusEl = document.getElementById('gpsStatus');
             const statusText = document.getElementById('gpsStatusText');
             statusEl.className = 'gps-status searching';
             statusText.textContent = 'Getting location...';
             document.getElementById('currentLocation').textContent = '📍 Getting location...';
+
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
                         const accuracy = position.coords.accuracy;
+
                         map.setView([lat, lng], 17);
                         if (currentMarker) {
                             currentMarker.setLatLng([lat, lng]);
@@ -813,25 +792,26 @@
                         currentLat = lat;
                         currentLng = lng;
                         locationFound = true;
+
                         document.getElementById('currentLocation').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                         document.getElementById('locationCoords').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
                         document.getElementById('accuracyDisplay').textContent = `Accuracy: ${Math.round(accuracy)}m`;
                         statusEl.className = 'gps-status active';
                         statusText.textContent = 'Active';
-                        map.eachLayer(function(layer) {
-                            if (layer instanceof L.Circle) map.removeLayer(layer);
-                        });
-                        L.circle([lat, lng], {
-                            color: '#667eea',
-                            fillColor: '#667eea',
-                            fillOpacity: 0.1,
-                            radius: accuracy
-                        }).addTo(map);
-                        if (voiceEnabled) speakText(`Location found. Accuracy ${Math.round(accuracy)} meters.`);
-                        if (isNavigating && destLat && destLng) {
-                            showRoute(lat, lng, destLat, destLng);
-                            updateDirection(lat, lng, destLat, destLng);
+
+                        // Manually emit one location now
+                        if (socket && socket.connected) {
+                            socket.emit('driver-location-update', {
+                                latitude: lat,
+                                longitude: lng,
+                                accuracy: accuracy,
+                                speed: 0,
+                                timestamp: Date.now()
+                            });
+                            console.log('📍 Manual emit:', lat.toFixed(5), lng.toFixed(5));
                         }
+
+                        if (voiceEnabled) speakText(`Location found. Accuracy ${Math.round(accuracy)} meters.`);
                     },
                     function(error) {
                         let errorMsg = 'Unable to get location. ';
@@ -875,7 +855,8 @@
             destLng = lngNum;
             isNavigating = true;
             announcementCount = 0;
-            document.getElementById('deliveryLocation').textContent = `${location}`;
+            document.getElementById('deliveryLocation').textContent = location;
+
             if (destinationMarker) map.removeLayer(destinationMarker);
             const destIcon = L.divIcon({
                 html: '<i class="bi bi-geo-alt-fill" style="font-size: 32px; color: #dc3545;"></i>',
@@ -884,30 +865,33 @@
             });
             destinationMarker = L.marker([latNum, lngNum], { icon: destIcon }).addTo(map);
             destinationMarker.bindPopup(`<strong>📍 ${patientName}</strong><br>${location}`).openPopup();
+
             const distance = calculateDistance(currentLat, currentLng, latNum, lngNum);
             showRoute(currentLat, currentLng, latNum, lngNum);
             updateDirection(currentLat, currentLng, latNum, lngNum);
+
             const bounds = L.latLngBounds([[currentLat, currentLng], [latNum, lngNum]]);
             map.fitBounds(bounds, { padding: [30, 30] });
             document.getElementById('routeInfo').style.display = 'block';
+
             if (voiceEnabled) speakText(`Navigating to ${patientName}. Distance ${distance.toFixed(1)} kilometers.`);
         }
 
         function showRoute(startLat, startLng, endLat, endLng) {
-            const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
+            const url = 'https://router.project-osrm.org/route/v1/driving/' + startLng + ',' + startLat + ';' + endLng + ',' + endLat + '?overview=full&geometries=geojson';
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
                         const route = data.routes[0];
-                        const geometry = route.geometry;
-                        const coordinates = geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                        const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
                         if (routeLayer) map.removeLayer(routeLayer);
                         routeLayer = L.polyline(coordinates, {
                             color: '#667eea',
                             weight: 4,
                             opacity: 0.8
                         }).addTo(map);
+
                         const distance = route.distance / 1000;
                         const duration = route.duration / 60;
                         document.getElementById('distance').textContent = distance.toFixed(1) + ' km';
@@ -934,14 +918,14 @@
             angle = (angle + 360) % 360;
             const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
             const index = Math.round(angle / 45) % 8;
-            document.getElementById('direction').textContent = directions[index] + ` (${Math.round(angle)}°)`;
+            document.getElementById('direction').textContent = directions[index] + ' (' + Math.round(angle) + '°)';
         }
 
         function showLocationOnMap(lat, lng, address) {
             if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
-                window.open(`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=15`, '_blank');
+                window.open('https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lng + '&zoom=15', '_blank');
             } else if (address) {
-                window.open(`https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`, '_blank');
+                window.open('https://www.openstreetmap.org/search?query=' + encodeURIComponent(address), '_blank');
             }
         }
 
@@ -953,17 +937,17 @@
         }
 
         function viewOrder(id) {
-            fetch(`/driver/order/${id}`)
+            fetch('/driver/order/' + id)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         const order = data.order;
-                        let msg = `Patient: ${order.patientName}\n`;
-                        msg += `Phone: ${order.patientPhone}\n`;
-                        msg += `Location: ${order.location}\n`;
-                        msg += `Status: ${order.status}`;
+                        let msg = 'Patient: ' + order.patientName + '\n';
+                        msg += 'Phone: ' + order.patientPhone + '\n';
+                        msg += 'Location: ' + order.location + '\n';
+                        msg += 'Status: ' + order.status;
                         if (order.deliveryDate) {
-                            msg += `\nDelivered: ${new Date(order.deliveryDate).toLocaleString()}`;
+                            msg += '\nDelivered: ' + new Date(order.deliveryDate).toLocaleString();
                         }
                         alert(msg);
                     } else {
@@ -989,19 +973,15 @@
             }
         }
 
-        // ========== DEBOUNCED RELOAD ON ORDER UPDATE ==========
-        // Prevents rapid reload loop when multiple order events fire
-        let _lastOrderReload = 0;
+        // ========== ORDER UPDATES — toast, no reload ==========
         socket.on('data-updated', (data) => {
             if (data.type === 'order') {
-                const now = Date.now();
-                if (now - _lastOrderReload < 10000) {
-                    console.log('📦 Order update ignored (debounced — reload happened <10s ago)');
-                    return;
-                }
-                _lastOrderReload = now;
-                console.log('📦 Order updated — reloading in 500ms...');
-                setTimeout(() => window.location.reload(), 500);
+                console.log('📦 Order update received — showing toast');
+                const notify = document.createElement('div');
+                notify.textContent = '📦 New order update — refresh to see';
+                notify.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#667eea;color:white;padding:12px 18px;border-radius:8px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:0.85rem;';
+                document.body.appendChild(notify);
+                setTimeout(() => notify.remove(), 5000);
             }
         });
 
@@ -1016,11 +996,6 @@
             });
 
             initMap();
-            startLocationUpdates();
-
-            window.addEventListener('beforeunload', function () {
-                if (locationInterval) clearInterval(locationInterval);
-            });
         });
     </script>
 
