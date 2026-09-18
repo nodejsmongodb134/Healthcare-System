@@ -409,15 +409,12 @@
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `/patient/message/delete/${id}`;
-                // Auto-injected CSRF token
-                var _csrfMeta = document.querySelector('meta[name="csrf-token"]');
-                if (_csrfMeta) {
-                    var _csrfInput = document.createElement('input');
-                    _csrfInput.type = 'hidden';
-                    _csrfInput.name = '_csrf';
-                    _csrfInput.value = _csrfMeta.getAttribute('content');
-                    form.appendChild(_csrfInput);
-                }
+                // CSRF token embedded directly from EJS
+                var _csrfInput = document.createElement('input');
+                _csrfInput.type = 'hidden';
+                _csrfInput.name = '_csrf';
+                _csrfInput.value = '<%= csrfToken %>';
+                form.appendChild(_csrfInput);
                 document.body.appendChild(form);
                 form.submit();
             }
