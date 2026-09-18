@@ -4,13 +4,13 @@ const { expect } = require('chai');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
+const { sendEmail } = require('../utils/email');
 
 // ============ MOCK NODEMAILER ============
 const mockTransporter = {
   sendMail: () => Promise.resolve({ messageId: 'mock-email-id' })
 };
-nodemailer.createTransport = () => mockTransporter;
+// email helper is a plain function - mock via jest.mock if needed
 
 // ============ TEST CONFIG ============
 // Increase timeout for all tests

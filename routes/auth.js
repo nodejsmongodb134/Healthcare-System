@@ -1,29 +1,13 @@
 const express = require('express');
+const { sendEmail } = require('../utils/email');
 const router = express.Router();
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 const { blindIndex } = require('../utils/blindIndex');
 const crypto = require('crypto');
 
 
 // ✅ Explicit SMTP config — works on Render
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 443,
-  secure: false,                    // true for 465 (SSL), false for 587 (STARTTLS)
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  connectionTimeout: 10000,        // 10 seconds
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-  tls: {
-    rejectUnauthorized: true     // allows self-signed certs if any
-  }
-});
-
 // ============ REGISTER WITH EMAIL VERIFICATION ============
 router.get('/register', (req, res) => {
   if (req.session.user) {
@@ -91,7 +75,7 @@ router.post('/register', async (req, res) => {
     
     const mailOptions = {
       to: user.email,
-      from: process.env.EMAIL_USER,
+      from: process.env.BREVO_SENDER_EMAIL,
       subject: 'Verify Your Email Address',
       html: `
         <!DOCTYPE html>
@@ -133,7 +117,7 @@ router.post('/register', async (req, res) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendEmail(mailOptions);
     console.log('✅ Verification email sent to:', user.email);
 
     req.flash('success_msg', 'Registration successful! Please check your email to verify your account.');
@@ -228,7 +212,7 @@ router.post('/resend-verification', async (req, res) => {
     
     const mailOptions = {
       to: user.email,
-      from: process.env.EMAIL_USER,
+      from: process.env.BREVO_SENDER_EMAIL,
       subject: 'Verify Your Email Address',
       html: `
         <!DOCTYPE html>
@@ -270,11 +254,11 @@ router.post('/resend-verification', async (req, res) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendEmail(mailOptions);
     console.log('✅ Verification email resent to:', user.email);
 
     req.flash('success_msg', 'Verification email sent! Please check your inbox.');
-    res.redirect('/auth/login');
+    res.redirect('/auth/resend-verification');
   } catch (error) {
     console.error('❌ Resend verification error:', error);
     req.flash('error_msg', 'Failed to resend verification email. Please try again.');
@@ -504,7 +488,7 @@ router.post('/forgot', async (req, res) => {
     
     const mailOptions = {
       to: user.email,
-      from: process.env.EMAIL_USER,
+      from: process.env.BREVO_SENDER_EMAIL,
       subject: 'Password Reset Request',
       html: `
         <!DOCTYPE html>
@@ -545,11 +529,11 @@ router.post('/forgot', async (req, res) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendEmail(mailOptions);
     console.log('✅ Reset email sent to:', user.email);
     
     req.flash('success_msg', 'Password reset link sent to your email');
-    res.redirect('/auth/login');
+    res.redirect('/auth/forgot');
   } catch (error) {
     console.error('❌ Forgot password error:', error);
     req.flash('error_msg', 'Failed to send reset email. Please try again.');
