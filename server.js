@@ -539,7 +539,7 @@ app.set('io', io);
 const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
-  server.listen(PORT ,() => {
+  server.listen(PORT ,'0.0.0.0'() => {
     console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
     console.log(`🔒 Security: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'} mode`);
   });
