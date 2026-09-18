@@ -1,7 +1,8 @@
-// middleware/imageCompressor.js
+﻿// middleware/imageCompressor.js
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
+const { uploadToCloudinary } = require('../utils/cloudinaryUpload');
 
 // ===== Config =====
 const MAX_WIDTH   = 1600;
@@ -22,7 +23,7 @@ async function compressImage(filePath) {
     return { originalSize, compressedSize: originalSize, saved: 0, percent: 0, skipped: true };
   }
 
-  // 🆕 Read the file into memory FIRST — releases the file handle immediately
+  // Read the file into memory FIRST — releases the file handle immediately
   const inputBuffer = fs.readFileSync(filePath);
 
   // Read metadata from the buffer (Sharp never touches the file on disk)
@@ -52,7 +53,7 @@ async function compressImage(filePath) {
   const outputBuffer = await pipeline.toBuffer();
 
   if (outputBuffer.length < originalSize) {
-    // 🆕 Write to a temp file, then atomically replace the original
+    // Write to a temp file, then atomically replace the original
     const tmpPath = filePath + '.tmp-' + Date.now();
     await fs.promises.writeFile(tmpPath, outputBuffer);
     await fs.promises.rename(tmpPath, filePath);
@@ -79,26 +80,62 @@ async function compressImage(filePath) {
 }
 
 /**
+ * Pick a Cloudinary subfolder based on the local file path.
+ * Falls back to 'uploads' if the path doesn't match a known folder.
+ */
+function folderFor(filePath) {
+  if (filePath.includes('prescriptions')) return 'prescriptions';
+  if (filePath.includes('messages'))      return 'messages';
+  if (filePath.includes('profiles'))      return 'profiles';
+  return 'uploads';
+}
+
+/**
+ * Process one file: compress + upload to Cloudinary.
+ * Sets `file.cloudinaryUrl` and `file.cloudinaryPublicId` on success.
+ */
+async function processFile(file) {
+  // 1. Compress (unchanged behavior)
+  const result = await compressImage(file.path).catch(err => {
+    console.error('⚠️ Compression failed (keeping original):', err.message);
+    return { skipped: true, originalSize: 0, compressedSize: 0, percent: 0 };
+  });
+
+  if (!result.skipped) {
+    console.log(
+      `🖼️  ${file.originalname} — ` +
+      `${(result.originalSize / 1024).toFixed(1)} KB → ` +
+      `${(result.compressedSize / 1024).toFixed(1)} KB ` +
+      `(saved ${result.percent}%)`
+    );
+  }
+
+  // 2. Upload the COMPRESSED file to Cloudinary
+  const folder = folderFor(file.path);
+  const cloud = await uploadToCloudinary(file.path, folder);
+
+  if (cloud) {
+    file.cloudinaryUrl = cloud.url;
+    file.cloudinaryPublicId = cloud.publicId;
+    console.log(`☁️  ${file.originalname} → Cloudinary (${(cloud.bytes / 1024).toFixed(1)} KB)`);
+  } else {
+    console.warn(`⚠️  ${file.originalname} → Cloudinary failed, kept local: ${file.path}`);
+  }
+
+  return result;
+}
+
+/**
  * Middleware for single-file uploads.
  */
 function compressSingle(req, res, next) {
   const file = req.file;
   if (!file) return next();
 
-  compressImage(file.path)
-    .then(result => {
-      if (!result.skipped) {
-        console.log(
-          `🖼️  ${file.originalname} — ` +
-          `${(result.originalSize / 1024).toFixed(1)} KB → ` +
-          `${(result.compressedSize / 1024).toFixed(1)} KB ` +
-          `(saved ${result.percent}%)`
-        );
-      }
-      next();
-    })
+  processFile(file)
+    .then(() => next())
     .catch(err => {
-      console.error('⚠️ Compression failed (keeping original):', err.message);
+      console.error('⚠️ compressSingle error:', err.message);
       next();
     });
 }
@@ -115,17 +152,10 @@ function compressMultiple(req, res, next) {
 
   if (all.length === 0) return next();
 
-  Promise.all(all.map(f => compressImage(f.path).catch(() => null)))
-    .then(results => {
-      results.forEach((r, i) => {
-        if (r && !r.skipped) {
-          console.log(`🖼️  ${all[i].originalname} — saved ${r.percent}%`);
-        }
-      });
-      next();
-    })
+  Promise.all(all.map(f => processFile(f).catch(() => null)))
+    .then(() => next())
     .catch(err => {
-      console.error('⚠️ Multi-compress failed:', err.message);
+      console.error('⚠️ compressMultiple error:', err.message);
       next();
     });
 }

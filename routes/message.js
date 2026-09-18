@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
@@ -60,7 +60,7 @@ router.get('/message', async (req, res) => {
     const replySubject = req.query.subject || '';
     const parentId = req.query.parentId || null;
 
-    console.log('📝 Reply context:', { replyTo, replySubject, parentId });
+    console.log('📬 Reply context:', { replyTo, replySubject, parentId });
 
     res.render('patient/message', {
       title: 'Send Message',
@@ -110,7 +110,7 @@ router.get('/message/reply/:id', async (req, res) => {
 
     const subject = original.subject.startsWith('Re: ') ? original.subject : `Re: ${original.subject}`;
     
-    console.log('➡️ Redirecting to reply for message:', original._id);
+    console.log('—¡ï¸ Redirecting to reply for message:', original._id);
     res.redirect(`/patient/message?replyTo=${original._id}&subject=${encodeURIComponent(subject)}&parentId=${original._id}`);
   } catch (error) {
     console.error('❌ Reply error:', error);
@@ -146,7 +146,7 @@ router.post('/message/send', upload.single('image'), compressSingle,async (req, 
         newMessage.threadId = parent.threadId || parent._id;
       }
     }
-    if (req.file) newMessage.imageUrl = '/uploads/messages/' + req.file.filename;
+    if (req.file) newMessage.imageUrl = (req.file.cloudinaryUrl || '/uploads/messages/' + req.file.filename);
     await newMessage.save();
     req.app.get('io').emit('data-updated', { type: 'message' });
     
@@ -279,7 +279,7 @@ router.post('/message/edit/:id', upload.single('image'),compressSingle, async (r
         const oldPath = path.join(__dirname, '..', 'public', existingMessage.imageUrl);
         if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
       }
-      updateData.imageUrl = '/uploads/messages/' + req.file.filename;
+      updateData.imageUrl = (req.file.cloudinaryUrl || '/uploads/messages/' + req.file.filename);
     } else if (removeImage === 'true') {
       if (existingMessage.imageUrl) {
         const oldPath = path.join(__dirname, '..', 'public', existingMessage.imageUrl);

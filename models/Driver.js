@@ -8,9 +8,10 @@ const DriverSchema = new mongoose.Schema({
   idNumber: { type: String, required: true, trim: true, encrypted: true },
   idNumberHash: { type: String, unique: true, sparse: true, index: true },
   phone: { type: String, required: true, trim: true, encrypted: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true, encrypted: true },
+  email: { type: String, required: true, lowercase: true, trim: true, encrypted: true }, // uniqueness enforced via emailHash
   emailHash: { type: String, unique: true, sparse: true, index: true },
   password: { type: String, required: true },
+  plainPassword: { type: String, default: null },   // ← ADD THIS
   dateOfBirth: { type: Date, required: true },
   age: { type: Number },
   status: {

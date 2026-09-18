@@ -145,9 +145,10 @@ router.post('/driver/create', async (req, res) => {
 
     console.log('✅ Driver registered:', name);
     console.log('🔑 Password:', generatedPassword);
-    
-    req.flash('success_msg', `Driver ${name} registered successfully! Password: ${generatedPassword} (Please save this password)`);
-    res.redirect('/nurse/create-driver');
+
+    // ✅ Redirect to driver details so the password block is shown immediately
+    req.flash('success_msg', `Driver ${name} registered successfully! Save the password shown below.`);
+    res.redirect(`/nurse/driver/${driver._id}`);
   } catch (error) {
     console.error('❌ Create driver error:', error.message);
     
@@ -320,8 +321,6 @@ router.post('/driver/delete/:id', async (req, res) => {
 });
 
 // ============ VIEW ALL DRIVERS (FIXED) ============
-// This route now renders the same view as /create-driver (list + form)
-// You can keep it separate or redirect; we'll render the same view.
 router.get('/drivers', async (req, res) => {
   try {
     if (!req.session.user) {
@@ -336,8 +335,6 @@ router.get('/drivers', async (req, res) => {
 
     const drivers = await Driver.find().sort({ createdAt: -1 });
 
-    // Render the same view as /create-driver (includes form and list)
-    // If you want a separate view without the form, create 'dashboard/driver' and update.
     res.render('nurse/create-driver', {
       title: 'Driver Management',
       user: req.session.user,
@@ -390,7 +387,7 @@ router.post('/driver/status/:id', async (req, res) => {
   }
 });
 
-// ============ RESET DRIVER PASSWORD (Single route, fixed) ============
+// ============ RESET DRIVER PASSWORD ============
 router.post('/driver/reset-password/:id', async (req, res) => {
   try {
     if (!req.session.user) {
@@ -418,7 +415,7 @@ router.post('/driver/reset-password/:id', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
     driver.password = hashedPassword;
-    driver.plainPassword = newPassword; // store for display
+    driver.plainPassword = newPassword;
     driver.updatedAt = Date.now();
     await driver.save();
 

@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
@@ -86,8 +86,8 @@ router.post('/order/place', upload.single('prescriptionPhoto'),compressSingle, a
       return res.redirect('/auth/login');
     }
 
-    console.log('📝 Order request body:', req.body);
-    console.log('📎 File:', req.file);
+    console.log('📬 Order request body:', req.body);
+    console.log('📬Ž File:', req.file);
 
     const { 
       patientName, 
@@ -127,7 +127,7 @@ router.post('/order/place', upload.single('prescriptionPhoto'),compressSingle, a
     // Get prescription photo path if uploaded
     let prescriptionPhoto = null;
     if (req.file) {
-      prescriptionPhoto = '/uploads/prescriptions/' + req.file.filename;
+      prescriptionPhoto = (req.file.cloudinaryUrl || '/uploads/prescriptions/' + req.file.filename);
     }
 
     // Create order
@@ -233,7 +233,7 @@ router.post('/order/cancel/:id', async (req, res) => {
     console.log('📦 Emitted order update for order cancellation');
     }
 
-    console.log('🗑️ Order cancelled:', order._id);
+    console.log('🗑️ Order cancelled:', order._id);
     req.flash('success_msg', 'Order cancelled successfully');
     res.redirect('/patient/order');
   } catch (error) {

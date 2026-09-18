@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
@@ -68,7 +68,9 @@ router.get('/nurse-orders', async (req, res) => {
     profiles.forEach(p => { profileMap[p.userId.toString()] = p.phone; });
 
     const patientsWithPhone = patients.map(p => ({
-      ...p,
+      _id: p._id,
+      name: p.name,
+      email: p.email,
       phone: profileMap[p._id.toString()] || 'N/A'
     }));
 
@@ -156,7 +158,7 @@ router.post('/order/create', upload.single('prescriptionPhoto'),compressSingle, 
     };
 
     if (req.file) {
-      orderData.prescriptionPhoto = '/uploads/prescriptions/' + req.file.filename;
+      orderData.prescriptionPhoto = (req.file.cloudinaryUrl || '/uploads/prescriptions/' + req.file.filename);
     }
 
     const newOrder = new Order(orderData);

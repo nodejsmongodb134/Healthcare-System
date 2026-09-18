@@ -445,6 +445,14 @@
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `/nurse/driver/delete/${id}`;
+
+                // ✅ CSRF token for the POST request
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_csrf';
+                csrfInput.value = '<%= typeof csrfToken !== "undefined" ? csrfToken : (typeof csrf !== "undefined" ? csrf : "") %>';
+                form.appendChild(csrfInput);
+
                 document.body.appendChild(form);
                 form.submit();
             }

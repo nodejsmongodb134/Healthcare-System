@@ -1,4 +1,4 @@
-// routes/nurse-message.js
+﻿// routes/nurse-message.js
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
@@ -8,6 +8,7 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const Patient = require('../models/Patient');
 const { plainify } = require('../utils/plainify');
+const { compressSingle } = require('../middleware/imageCompressor');
 
 // ============ MULTER CONFIGURATION ============
 const storage = multer.diskStorage({
@@ -54,11 +55,11 @@ router.get('/nurse-messages', async (req, res) => {
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.userId.toString()] = p.phone; });
 
-        // ✅ Read each field explicitly — getters trigger decryption
+        // ✅ Read each field explicitly â€” getters trigger decryption
     const patientsWithPhone = patients.map(p => ({
       _id: p._id,
-      name: p.name,         // ← getter → plaintext
-      email: p.email,       // ← getter → plaintext
+      name: p.name,         // ← getter ←’ plaintext
+      email: p.email,       // ← getter ←’ plaintext
       phone: profileMap[p._id.toString()] || 'N/A'
     }));
 
@@ -119,7 +120,7 @@ router.get('/message/:id', async (req, res) => {
 });
 
 // ============ REPLY TO MESSAGE ============
-router.post('/message/reply', upload.single('replyImage'), async (req, res) => {
+router.post('/message/reply', upload.single('replyImage'), compressSingle, async (req, res) => {
   try {
     if (!req.session.user || req.session.user.role !== 'nurse') return res.redirect('/auth/login');
     const { messageId, reply } = req.body;
@@ -138,7 +139,7 @@ router.post('/message/reply', upload.single('replyImage'), async (req, res) => {
     message.replyDate = Date.now();
     message.status = 'replied';
     message.updatedAt = Date.now();
-    if (req.file) message.nurseReplyImageUrl = '/uploads/messages/' + req.file.filename;
+    if (req.file) message.nurseReplyImageUrl = (req.file.cloudinaryUrl || '/uploads/messages/' + req.file.filename);
     await message.save();
 
     const io = req.app.get('io');
@@ -154,7 +155,7 @@ router.post('/message/reply', upload.single('replyImage'), async (req, res) => {
 });
 
 // ============ NURSE SEND NEW MESSAGE ============
-router.post('/message/send', upload.single('image'), async (req, res) => {
+router.post('/message/send', upload.single('image'), compressSingle, async (req, res) => {
   try {
     if (!req.session.user || req.session.user.role !== 'nurse') return res.redirect('/auth/login');
     const { patientId, subject, message } = req.body;
@@ -184,7 +185,7 @@ router.post('/message/send', upload.single('image'), async (req, res) => {
       createdAt: Date.now(),
       updatedAt: Date.now()
     });
-    if (req.file) newMessage.imageUrl = '/uploads/messages/' + req.file.filename;
+    if (req.file) newMessage.imageUrl = (req.file.cloudinaryUrl || '/uploads/messages/' + req.file.filename);
     await newMessage.save();
 
     const io = req.app.get('io');

@@ -12,9 +12,7 @@ router.get('/login', (req, res) => {
     return res.redirect('/driver/dashboard');
   }
   res.render('driver/login', {
-    title: 'Driver Login',
-    success_msg: req.flash('success_msg'),
-    error_msg: req.flash('error_msg')
+    title: 'Driver Login'
   });
 });
 
@@ -93,9 +91,7 @@ router.get('/dashboard', async (req, res) => {
     res.render('driver/dashboard', {
       title: 'Driver Dashboard',
       driver: driver,
-      orders: orders,
-      success_msg: req.flash('success_msg'),
-      error_msg: req.flash('error_msg')
+      orders: orders
     });
   } catch (error) {
     console.error('❌ Driver dashboard error:', error);
@@ -120,9 +116,7 @@ router.get('/change-password', async (req, res) => {
 
     res.render('driver/change-password', {
       title: 'Change Password',
-      driver: driver,
-      success_msg: req.flash('success_msg'),
-      error_msg: req.flash('error_msg')
+      driver: driver
     });
   } catch (error) {
     console.error('❌ Change password page error:', error);
