@@ -71,7 +71,7 @@ router.post('/register', async (req, res) => {
     await user.save();
     console.log('✅ User registered:', user.email);
 
-    const verificationUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/auth/verify/${verificationToken}`;
+    const verificationUrl = `${process.env.BASE_URL || 'https://healthcare-system-4ezz.onrender.com'}/auth/verify/${verificationToken}`;
     
     const mailOptions = {
       to: user.email,
@@ -484,7 +484,7 @@ router.post('/forgot', async (req, res) => {
 
     console.log('🔑 Reset token generated:', token);
 
-    const resetUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/auth/reset/${token}`;
+    const resetUrl = `${process.env.BASE_URL || 'https://healthcare-system-4ezz.onrender.com'}/auth/reset/${token}`;
     
     const mailOptions = {
       to: user.email,
