@@ -20,7 +20,7 @@ router.get('/register', (req, res) => {
 router.post('/register', async (req, res) => {
   try {
     console.log('📝 Registration attempt:', req.body.email);
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;  // role removed: patients only
 
     if (!name || !email || !password) {
       req.flash('error_msg', 'All fields are required');
@@ -63,7 +63,7 @@ router.post('/register', async (req, res) => {
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
-      role: role || 'patient',
+      role: 'patient',  // hardcoded: nurses created by admin only
       verificationToken: verificationToken,
       verificationTokenExpires: verificationTokenExpires,
       isVerified: false
