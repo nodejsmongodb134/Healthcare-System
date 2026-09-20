@@ -2,6 +2,7 @@ const express = require('express');
 const { sendEmail } = require('../utils/email');
 const router = express.Router();
 const User = require('../models/User');
+const Appointment = require('../models/Appointment');
 const bcrypt = require('bcryptjs');
 const { blindIndex } = require('../utils/blindIndex');
 const crypto = require('crypto');
@@ -410,35 +411,49 @@ router.get('/patient-dashboard', async (req, res) => {
 router.get('/nurse-dashboard', async (req, res) => {
   console.log('📊 Nurse dashboard accessed');
   console.log('👤 Session user:', req.session.user);
-  
+
   try {
     if (!req.session.user || req.session.user.role !== 'nurse') {
       req.flash('error_msg', 'Please login as nurse');
       return res.redirect('/auth/login');
     }
-    
+
     const user = await User.findById(req.session.user.id);
     console.log('📋 User from DB:', user ? 'Found' : 'Not found');
     console.log('📋 profileComplete from DB:', user ? user.profileComplete : 'N/A');
     console.log('📋 profileComplete from session:', req.session.user.profileComplete);
-    
+
     if (!user) {
       req.flash('error_msg', 'User not found');
       return res.redirect('/auth/login');
     }
-    
+
     req.session.user.profileComplete = user.profileComplete;
-    
+
     if (!user.profileComplete) {
       console.log('⚠️ Profile not complete, redirecting to profile');
       req.flash('warning_msg', 'Please complete your profile first');
       return res.redirect('/nurse/profile');
     }
-    
+
+    // ============ REAL STATS ============
+    const userId = req.session.user.id;
+
+    // Nurses see clinic-wide stats (they act as admins)
+    const [total, pending, confirmed, cancelled] = await Promise.all([
+      Appointment.countDocuments({}),
+      Appointment.countDocuments({ status: 'pending' }),
+      Appointment.countDocuments({ status: 'confirmed' }),
+      Appointment.countDocuments({ status: 'cancelled' })
+    ]);
+
+    console.log('📊 Nurse stats:', { total, pending, confirmed, cancelled });
+
     console.log('✅ Rendering nurse dashboard');
-    res.render('dashboard/nurse-dashboard', { 
+    res.render('dashboard/nurse-dashboard', {
       title: 'Nurse Dashboard',
       user: req.session.user,
+      stats: { total, pending, confirmed, cancelled }
     });
   } catch (error) {
     console.error('❌ Nurse dashboard error:', error);

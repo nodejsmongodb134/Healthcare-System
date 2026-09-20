@@ -117,34 +117,34 @@
                 </div>
             </div>
         </div>
-
-        <!-- Stats (dummy – replace with real data) -->
+        <!-- Dashboard Stats -->
         <div class="row g-2 g-md-3 mb-4">
             <div class="col-6 col-md-3">
                 <div class="card p-3 text-center">
-                    <div class="stat-number">0</div>
+                    <div class="stat-number"><%= (stats && stats.total) || 0 %></div>
                     <small class="text-muted">Total Appointments</small>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="card p-3 text-center">
-                    <div class="stat-number text-warning">0</div>
+                    <div class="stat-number text-warning"><%= (stats && stats.pending) || 0 %></div>
                     <small class="text-muted">Pending</small>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="card p-3 text-center">
-                    <div class="stat-number text-success">0</div>
-                    <small class="text-muted">Completed</small>
+                    <div class="stat-number text-success"><%= (stats && stats.confirmed) || 0 %></div>
+                    <small class="text-muted">Confirmed</small>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="card p-3 text-center">
-                    <div class="stat-number text-danger">0</div>
+                    <div class="stat-number text-danger"><%= (stats && stats.cancelled) || 0 %></div>
                     <small class="text-muted">Cancelled</small>
                 </div>
             </div>
         </div>
+        
 
         <!-- Row 1: Quick Actions -->
         <div class="row g-3 mt-1">
