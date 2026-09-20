@@ -1,0 +1,232 @@
+/* =====================================================
+   ADMIN RESPONSIVE STYLESHEET
+   Mobile (<=575px) / Tablet (576-991px) / Desktop (>=992px)
+   ===================================================== */
+
+/* ═══════════════ GLOBAL ═══════════════ */
+body {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+img, svg, table, pre {
+  max-width: 100%;
+}
+
+/* Prevent long emails / URLs from overflowing */
+td, th, .text-break, .info-value {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* ═══════════════ CONTAINER / PADDING ═══════════════ */
+.container,
+.container-fluid {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+@media (min-width: 576px) {
+  .container, .container-fluid { padding-left: 20px; padding-right: 20px; }
+}
+
+@media (min-width: 992px) {
+  .container, .container-fluid { padding-left: 32px; padding-right: 32px; }
+}
+
+/* ═══════════════ CARDS ═══════════════ */
+.card {
+  border-radius: 12px;
+}
+
+@media (max-width: 575.98px) {
+  .card { border-radius: 10px; }
+  .card.p-4 { padding: 14px !important; }
+  .card.p-3 { padding: 12px !important; }
+  .card .p-4 { padding: 14px !important; }
+  .card .p-3 { padding: 12px !important; }
+  .card-body { padding: 14px !important; }
+}
+
+/* ═══════════════ STAT / METRIC CARDS ═══════════════ */
+@media (max-width: 575.98px) {
+  .stat-number,
+  .stat-card h3,
+  .stat-card .h3 { font-size: 1.4rem !important; }
+  .stat-card { padding: 12px !important; }
+  .card h3 { font-size: 1.5rem; }
+  .card h4 { font-size: 1.15rem; }
+  .card h5 { font-size: 1rem; }
+  .card h6 { font-size: 0.9rem; }
+}
+
+/* ═══════════════ TABLES → HORIZONTAL SCROLL ═══════════════ */
+.table-responsive,
+.table-responsive-sm,
+div.table-responsive {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Make ANY table scrollable horizontally if it's too wide */
+@media (max-width: 991.98px) {
+  .table:not(.table-responsive *) {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .table { font-size: 0.78rem; }
+  .table th, .table td { padding: 6px 8px; }
+  .table thead th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.3px; }
+}
+
+/* ═══════════════ BUTTONS (touch-friendly) ═══════════════ */
+@media (max-width: 575.98px) {
+  .btn { font-size: 0.78rem; padding: 8px 12px; min-height: 36px; }
+  .btn-sm { font-size: 0.7rem; padding: 6px 10px; min-height: 32px; }
+  .btn-lg { font-size: 0.9rem; padding: 10px 16px; }
+
+  /* Full-width buttons in stacked groups */
+  .btn-group-vertical > .btn,
+  .d-grid > .btn { width: 100%; }
+
+  /* Buttons in tables/cards — prevent overflow */
+  .btn-group .btn { padding: 5px 8px; font-size: 0.7rem; }
+}
+
+/* ═══════════════ FORMS ═══════════════ */
+@media (max-width: 575.98px) {
+  .form-control, .form-select { font-size: 0.85rem; padding: 8px 10px; }
+  .form-label { font-size: 0.8rem; }
+  .form-text, .form-control + small { font-size: 0.72rem; }
+  .input-group-text { font-size: 0.8rem; padding: 6px 8px; }
+  textarea.form-control { min-height: 100px; }
+}
+
+/* ═══════════════ MODALS ═══════════════ */
+@media (max-width: 575.98px) {
+  .modal-dialog {
+    margin: 8px;
+    max-width: calc(100% - 16px);
+  }
+  .modal-content { border-radius: 12px; }
+  .modal-header { padding: 12px 14px; }
+  .modal-body { padding: 14px; }
+  .modal-footer { padding: 10px 14px; }
+  .modal-footer .btn { flex: 1; }
+}
+
+/* ═══════════════ NAVBAR ═══════════════ */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+  }
+  .navbar-nav .nav-link {
+    padding: 10px 14px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .navbar-text { font-size: 0.8rem; }
+  .navbar-brand { font-size: 1rem; }
+}
+
+/* ═══════════════ GRID SPACING ═══════════════ */
+@media (max-width: 575.98px) {
+  .row.g-3 { --bs-gutter-x: 0.5rem; --bs-gutter-y: 0.5rem; }
+  .row.g-4 { --bs-gutter-x: 0.75rem; --bs-gutter-y: 0.75rem; }
+  .row.mt-3, .row.mt-4 { margin-top: 0.75rem !important; }
+  .row.mb-3, .row.mb-4 { margin-bottom: 0.75rem !important; }
+  .mt-4 { margin-top: 1rem !important; }
+  .mb-4 { margin-bottom: 1rem !important; }
+  .p-4 { padding: 14px !important; }
+  .px-4 { padding-left: 14px !important; padding-right: 14px !important; }
+}
+
+/* ═══════════════ TYPOGRAPHY ═══════════════ */
+@media (max-width: 575.98px) {
+  body { font-size: 13.5px; line-height: 1.5; }
+  h1, .h1 { font-size: 1.4rem; }
+  h2, .h2 { font-size: 1.25rem; }
+  h3, .h3 { font-size: 1.1rem; }
+  h4, .h4 { font-size: 1rem; }
+  h5, .h5 { font-size: 0.95rem; }
+  h6, .h6 { font-size: 0.88rem; }
+  .lead { font-size: 0.95rem; }
+}
+
+/* ═══════════════ BADGES ═══════════════ */
+@media (max-width: 575.98px) {
+  .badge { font-size: 0.68rem; padding: 4px 8px; }
+}
+
+/* ═══════════════ ALERTS ═══════════════ */
+@media (max-width: 575.98px) {
+  .alert { padding: 10px 12px; font-size: 0.82rem; border-radius: 8px; }
+  .alert h4, .alert h5 { font-size: 0.95rem; }
+  .alert p { font-size: 0.78rem; margin-bottom: 0; }
+}
+
+/* ═══════════════ DROPDOWNS ═══════════════ */
+@media (max-width: 575.98px) {
+  .dropdown-menu { font-size: 0.85rem; min-width: 160px; }
+}
+
+/* ═══════════════ LIST GROUPS ═══════════════ */
+@media (max-width: 575.98px) {
+  .list-group-item { padding: 10px 12px; font-size: 0.83rem; }
+}
+
+/* ═══════════════ PAGINATION ═══════════════ */
+@media (max-width: 575.98px) {
+  .pagination { flex-wrap: wrap; gap: 3px; }
+  .pagination .page-link { font-size: 0.75rem; padding: 5px 9px; }
+}
+
+/* ═══════════════ FLEXBOX STACK ON MOBILE ═══════════════ */
+@media (max-width: 575.98px) {
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px;
+  }
+  .mobile-stack > * { width: 100%; }
+}
+
+/* ═══════════════ ADMIN QUICK ACTIONS (dashboards) ═══════════════ */
+@media (max-width: 575.98px) {
+  .quick-actions { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; }
+}
+
+@media (max-width: 400px) {
+  .quick-actions { grid-template-columns: repeat(2, 1fr) !important; gap: 6px; }
+}
+
+/* ═══════════════ ADMIN TABLE ACTION COLUMN ═══════════════ */
+@media (max-width: 575.98px) {
+  .table .btn-group { flex-wrap: wrap; gap: 3px; }
+  .table .btn-group .btn { flex: 1 0 auto; min-width: 40px; }
+}
+
+/* ═══════════════ STICKY ELEMENTS ═══════════════ */
+@media (max-width: 575.98px) {
+  .sticky-top { position: relative !important; }
+}
+
+/* ═══════════════ CHARTS / CANVAS ═══════════════ */
+canvas { max-width: 100%; height: auto !important; }
+
+/* ═══════════════ PRINT ═══════════════ */
+@media print {
+  .navbar, .btn, .modal, .no-print { display: none !important; }
+  body { background: white; font-size: 11pt; }
+  .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+}
