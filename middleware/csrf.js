@@ -30,16 +30,25 @@ const {
 
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
 
-  // ✅ v4 API name
+  // Accept token from header, body, query, OR cookie
+  // (cookie fallback is essential for multipart/form-data uploads
+  //  because multer parses the body AFTER csrf middleware runs)
   getCsrfTokenFromRequest: (req) => {
     const fromHeader = req.headers['x-csrf-token'] || '';
     const fromBody   = (req.body && req.body._csrf) || '';
     const fromQuery  = (req.query && req.query._csrf) || '';
-    const token = fromHeader || fromBody || fromQuery || '';
+    const fromCookie = (req.cookies && req.cookies['x-csrf-token']) || '';
+
+    const token = fromHeader || fromBody || fromQuery || fromCookie || '';
 
     if (DEBUG_CSRF && req.method !== 'GET' && req.method !== 'HEAD') {
-      console.log('📥 CSRF token from request:',
-        token ? token.substring(0, 32) + '…' : '(EMPTY)');
+      console.log('📥 CSRF token source:', {
+        header: !!fromHeader,
+        body:   !!fromBody,
+        query:  !!fromQuery,
+        cookie: !!fromCookie,
+        len:    token.length
+      });
     }
     return token;
   }
@@ -65,7 +74,6 @@ const csrfGenerate = (req, res, next) => {
 const csrfProtection = (req, res, next) => {
   doubleCsrfProtection(req, res, (err) => {
     if (err) {
-      // Keep only security-relevant failure logs
       console.warn('⚠️ CSRF rejected:', req.method, req.originalUrl, '| IP:', req.ip);
       return next(err);
     }

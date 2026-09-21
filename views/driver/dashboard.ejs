@@ -331,7 +331,7 @@
         </div>
 
         <div class="row mt-2">
-            <div class="col-12">
+            <div class="col-12" id="deliveriesSection">
                 <div class="card p-2 p-sm-3 deliveries-section">
                     <div class="deliveries-header">
                         <h6 class="mb-0"><i class="bi bi-prescription"></i> My Deliveries</h6>
@@ -945,17 +945,127 @@
             }
         }
 
-        // ========== ORDER UPDATES — toast, no reload ==========
-        socket.on('data-updated', (data) => {
-            if (data.type === 'order') {
-                console.log('📦 Order update received — showing toast');
-                const notify = document.createElement('div');
-                notify.textContent = '📦 New order update — refresh to see';
-                notify.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#667eea;color:white;padding:12px 18px;border-radius:8px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:0.85rem;';
-                document.body.appendChild(notify);
-                setTimeout(() => notify.remove(), 5000);
-            }
-        });
+// ========== LIVE ORDER REFRESH ==========
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function truncate(s, n) {
+  s = String(s || '');
+  return s.length > n ? s.substring(0, n) + '...' : s;
+}
+
+function renderOrderCard(order) {
+  var priority = order.priority || 'medium';
+  var isDelivered = order.status === 'delivered';
+  var id = String(order._id);
+  var loc = escapeHtml(order.location);
+  var name = escapeHtml(order.patientName);
+  var phone = escapeHtml(order.patientPhone);
+
+  var html = '<div class="order-card status-' + escapeHtml(order.status) + '" data-status="' + escapeHtml(order.status) + '">';
+  html += '<div class="fw-bold"><i class="bi bi-person"></i> ' + name + '</div>';
+  html += '<small class="text-muted"><i class="bi bi-prescription"></i> ' + escapeHtml(order.prescriptionName) + '</small>';
+  html += '<br>';
+  html += '<span class="status-badge status-' + escapeHtml(order.status) + '">';
+  html += '<i class="bi bi-' + (isDelivered ? 'check-circle' : 'truck') + '"></i> ' + (isDelivered ? 'Delivered' : 'In Transit');
+  html += '</span>';
+  html += '<span class="priority-badge priority-' + escapeHtml(priority) + '">';
+  html += '<i class="bi bi-flag"></i> ' + priority.charAt(0).toUpperCase() + priority.slice(1);
+  html += '</span>';
+  html += '<br>';
+  html += '<small class="text-muted"><i class="bi bi-geo-alt"></i> ' + escapeHtml(truncate(order.location, 20)) + '</small>';
+  html += '<br>';
+  html += '<small class="text-muted"><i class="bi bi-telephone"></i> ' + phone + '</small>';
+  html += '<div class="action-buttons">';
+  if (isDelivered) {
+    html += '<button class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation(); viewOrder('' + id + '')">';
+    html += '<i class="bi bi-eye"></i> View</button>';
+    html += '<span class="badge bg-success ms-1"><i class="bi bi-check-circle"></i> Done</span>';
+  } else {
+    html += '<button class="btn btn-success btn-sm" onclick="navigateToDestination('' + id + '', '' + order.latitude + '', '' + order.longitude + '', '' + loc + '', '' + name + '', '' + phone + '')">';
+    html += '<i class="bi bi-compass"></i> Navigate</button>';
+    html += '<button class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation(); viewOrder('' + id + '')">';
+    html += '<i class="bi bi-eye"></i> View</button>';
+    html += '<button class="btn btn-info btn-sm" onclick="event.stopPropagation(); markDelivered('' + id + '')">';
+    html += '<i class="bi bi-check-circle"></i> Deliver</button>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function renderOrders(orders) {
+  var section = document.getElementById('deliveriesSection');
+  if (!section) return;
+
+  if (!orders || orders.length === 0) {
+    section.innerHTML = '<div class="card p-2 p-sm-3 deliveries-section">' +
+      '<div class="deliveries-header"><h6 class="mb-0"><i class="bi bi-prescription"></i> My Deliveries</h6>' +
+      '<span class="badge bg-info">Total: 0</span></div>' +
+      '<div class="empty-state"><i class="bi bi-prescription"></i>' +
+      '<h4>No Orders Assigned</h4>' +
+      '<p>You have no deliveries assigned at this time.</p></div></div>';
+    return;
+  }
+
+  var inTransit = orders.filter(function(o) { return o.status === 'in-transit'; });
+  var delivered = orders.filter(function(o) { return o.status === 'delivered'; });
+
+  var html = '<div class="card p-2 p-sm-3 deliveries-section">';
+  html += '<div class="deliveries-header"><h6 class="mb-0"><i class="bi bi-prescription"></i> My Deliveries</h6>';
+  html += '<span class="badge bg-info">Total: ' + orders.length + '</span></div>';
+  html += '<div class="row g-2">';
+  html += '<div class="col-12 col-sm-6 in-transit-column">';
+  html += '<div class="column-header"><i class="bi bi-truck text-info"></i> In Transit';
+  html += '<span class="count-badge badge bg-info">' + inTransit.length + '</span></div>';
+  if (inTransit.length > 0) {
+    html += '<div class="order-list-container">' + inTransit.map(renderOrderCard).join('') + '</div>';
+  } else {
+    html += '<div class="empty-column"><i class="bi bi-check-circle text-success"></i><p>No orders in transit</p></div>';
+  }
+  html += '</div>';
+  html += '<div class="col-12 col-sm-6 delivered-column">';
+  html += '<div class="column-header"><i class="bi bi-check-circle text-success"></i> Delivered';
+  html += '<span class="count-badge badge bg-success">' + delivered.length + '</span></div>';
+  if (delivered.length > 0) {
+    html += '<div class="order-list-container">' + delivered.map(renderOrderCard).join('') + '</div>';
+  } else {
+    html += '<div class="empty-column"><i class="bi bi-box-seam text-muted"></i><p>No delivered orders</p></div>';
+  }
+  html += '</div></div></div>';
+
+  section.innerHTML = html;
+}
+
+async function refreshOrders() {
+  try {
+    var r = await fetch('/driver/orders/json', { credentials: 'same-origin' });
+    if (!r.ok) return;
+    var data = await r.json();
+    if (data.success && Array.isArray(data.orders)) {
+      renderOrders(data.orders);
+      console.log('🔄 Orders refreshed — count:', data.orders.length);
+    }
+  } catch (e) {
+    console.error('refreshOrders failed:', e);
+  }
+}
+
+socket.on('data-updated', function(data) {
+  if (data.type === 'order') {
+    console.log('📦 Order update received — refreshing orders');
+    refreshOrders();
+  }
+});
+
+socket.on('connect', function() {
+  if (window.__driverBootDone) {
+    refreshOrders();
+  }
+  window.__driverBootDone = true;
+});
 
         // ========== INIT ==========
         document.addEventListener('DOMContentLoaded', function () {

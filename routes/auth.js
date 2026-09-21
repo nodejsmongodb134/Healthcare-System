@@ -313,8 +313,8 @@ router.post('/login', async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    // ============ SET SESSION ============
-    req.session.user = {
+    // ============ REGENERATE SESSION (prevents session fixation) ============
+    const userData = {
       id: user._id,
       name: user.name,
       email: user.email,
@@ -324,29 +324,43 @@ router.post('/login', async (req, res) => {
       isActive: user.isActive
     };
 
-    console.log('✅ User logged in:', user.email);
-    console.log('📋 profileComplete in session:', req.session.user.profileComplete);
-    req.flash('success_msg', `Welcome back, ${user.name}!`);
-
-    // ============ ADMIN REDIRECT ============
-    if (user.role === 'admin') {
-      console.log('👑 Admin logged in, redirecting to /admin/dashboard');
-      return res.redirect('/admin/dashboard');
-    }
-
-    // ============ PROFILE COMPLETE CHECK ============
-    if (!user.profileComplete) {
-      console.log('⚠️ Profile not complete, redirecting to profile');
-      if (user.role === 'nurse') {
-        return res.redirect('/nurse/profile');
-      } else {
-        return res.redirect('/patient/profile');
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error('❌ Session regenerate error:', err);
+        req.flash('error_msg', 'Login failed. Please try again.');
+        return res.redirect('/auth/login');
       }
-    }
-    
-    // ============ ROLE-BASED DASHBOARD ============
-    const dashboard = user.role === 'nurse' ? '/auth/nurse-dashboard' : '/auth/patient-dashboard';
-    res.redirect(dashboard);
+
+      req.session.user = userData;
+      console.log('✅ User logged in (new session):', user.email);
+      console.log('📋 profileComplete in session:', req.session.user.profileComplete);
+
+      req.session.save((saveErr) => {
+        if (saveErr) console.error('❌ Session save error:', saveErr);
+
+        req.flash('success_msg', `Welcome back, ${user.name}!`);
+
+        // ============ ADMIN REDIRECT ============
+        if (user.role === 'admin') {
+          console.log('👑 Admin logged in, redirecting to /admin/dashboard');
+          return res.redirect('/admin/dashboard');
+        }
+
+        // ============ PROFILE COMPLETE CHECK ============
+        if (!user.profileComplete) {
+          console.log('⚠️ Profile not complete, redirecting to profile');
+          if (user.role === 'nurse') {
+            return res.redirect('/nurse/profile');
+          } else {
+            return res.redirect('/patient/profile');
+          }
+        }
+
+        // ============ ROLE-BASED DASHBOARD ============
+        const dashboard = user.role === 'nurse' ? '/auth/nurse-dashboard' : '/auth/patient-dashboard';
+        res.redirect(dashboard);
+      });
+    });
   } catch (error) {
     console.error('❌ Login error:', error);
     req.flash('error_msg', 'Login failed. Please try again.');
@@ -465,9 +479,8 @@ router.get('/nurse-dashboard', async (req, res) => {
 // ============ LOGOUT ============
 router.get('/logout', (req, res) => {
   req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-    }
+    if (err) console.error('Logout error:', err);
+    res.clearCookie('connect.sid', { path: '/' });
     res.redirect('/auth/login');
   });
 });

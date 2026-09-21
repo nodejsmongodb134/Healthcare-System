@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
       return res.redirect('/driver/login');
     }
 
-    req.session.driver = {
+    const driverData = {
       id: driver._id,
       name: driver.name,
       email: driver.email,
@@ -53,8 +53,22 @@ router.post('/login', async (req, res) => {
       status: driver.status
     };
 
-    req.flash('success_msg', `Welcome back, ${driver.name}!`);
-    res.redirect('/driver/dashboard');
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error('❌ Session regenerate error:', err);
+        req.flash('error_msg', 'Login failed. Please try again.');
+        return res.redirect('/driver/login');
+      }
+
+      req.session.driver = driverData;
+      console.log('✅ Driver logged in (new session):', driver.email);
+
+      req.session.save((saveErr) => {
+        if (saveErr) console.error('❌ Session save error:', saveErr);
+        req.flash('success_msg', `Welcome back, ${driver.name}!`);
+        res.redirect('/driver/dashboard');
+      });
+    });
   } catch (error) {
     console.error('❌ Driver login error:', error);
     req.flash('error_msg', 'Login failed. Please try again.');
@@ -272,9 +286,42 @@ router.post('/order/status', async (req, res) => {
 
 // ============ DRIVER LOGOUT ============
 router.get('/logout', (req, res) => {
-  req.session.driver = null;
-  req.flash('success_msg', 'Logged out successfully');
-  res.redirect('/driver/login');
+  req.session.destroy((err) => {
+    if (err) console.error('Driver logout error:', err);
+    res.clearCookie('connect.sid', { path: '/' });
+    res.redirect('/driver/login');
+  });
+});
+
+
+// ============ ORDERS AS JSON (for live refresh) ============
+router.get('/orders/json', async (req, res) => {
+  try {
+    if (!req.session.driver) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const driver = await Driver.findById(req.session.driver.id);
+    if (!driver) {
+      return res.status(404).json({ error: 'Driver not found' });
+    }
+
+    const orders = await Order.find({ driverId: driver._id });
+
+    const priorityOrder = { high: 1, medium: 2, low: 3 };
+    orders.sort((a, b) => {
+      const aP = priorityOrder[a.priority] || 2;
+      const bP = priorityOrder[b.priority] || 2;
+      if (aP !== bP) return aP - bP;
+      return new Date(b.orderDate) - new Date(a.orderDate);
+    });
+
+    const { plainify } = require('../utils/plainify');
+    res.json({ success: true, orders: plainify(orders) });
+  } catch (err) {
+    console.error('Driver orders JSON error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;

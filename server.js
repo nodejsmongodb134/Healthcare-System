@@ -198,11 +198,13 @@ app.use((req, res, next) => {
 
       // Inject all global scripts before </body>
       if (body.indexOf('</body>') !== -1) {
+        const V = 'v4';
         const scripts = [
-          '/js/net.js',             // 1. patches fetch first
-          '/js/network-status.js',  // 2. banner + spinner
-          '/js/upload.js',          // 3. upload warnings
-          '/js/csrf-inject.js'      // 4. CSRF tokens (uses patched fetch)
+          `/js/net.js?${V}`,
+          `/js/network-status.js?${V}`,
+          `/js/upload.js?${V}`,
+          `/js/csrf-inject.js?${V}`,
+          `/js/socket-manager.js?${V}`
         ];
         for (const src of scripts) {
           if (body.indexOf(src) === -1) {
@@ -363,17 +365,11 @@ const io = socketIo(server, {
 io.use((socket, next) => {
   const cookieHeader = socket.handshake.headers.cookie;
   if (!cookieHeader) {
-    console.warn(`⚠️ [Socket.IO] No cookie in handshake from ${socket.id}`);
+    console.warn('⚠️ [Socket.IO] No cookie from ' + socket.id);
     return next(new Error('Authentication required'));
   }
 
-  const cookies = cookieHeader.split('; ');
-  const sidCookie = cookies.find(c => c.startsWith('connect.sid='));
-  if (!sidCookie) {
-    console.warn(`⚠️ [Socket.IO] No connect.sid cookie from ${socket.id}`);
-    return next(new Error('Authentication required'));
-  }
-
+  // express-session reads cookies from req.headers.cookie directly
   sessionMiddleware(socket.handshake, {}, (err) => {
     if (err) {
       console.error('❌ [Socket.IO] Session error:', err.message);
@@ -381,16 +377,20 @@ io.use((socket, next) => {
     }
 
     const session = socket.handshake.session;
-    if (session && session.user) {
+    if (!session) {
+      return next(new Error('No session'));
+    }
+
+    if (session.user) {
       socket.userId = session.user.id;
       socket.userRole = session.user.role;
       next();
-    } else if (session && session.driver) {
+    } else if (session.driver) {
       socket.driverId = session.driver.id;
       socket.userRole = 'driver';
       next();
     } else {
-      console.warn(`⚠️ [Socket.IO] No user/driver in session for ${socket.id}`);
+      console.warn('⚠️ [Socket.IO] No user in session for ' + socket.id);
       next(new Error('Authentication required'));
     }
   });
