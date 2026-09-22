@@ -335,7 +335,7 @@
                         <div class="col-sm-12">
                             <span class="detail-label"><i class="bi bi-box-arrow-in-right"></i> Driver Login URL</span>
                             <div class="detail-value d-flex flex-wrap align-items-center gap-2">
-                                <a href="/driver/login" target="_blank" class="text-primary">http://localhost:3000/driver/login</a>
+                                <a href="/driver/login" target="_blank" class="text-primary">https://palmvalleymedicalcenter.africa.com/driver/login</a>
                                 <button class="btn btn-sm btn-outline-primary" onclick="copyLoginUrl()">
                                     <i class="bi bi-clipboard"></i> Copy URL
                                 </button>
@@ -488,7 +488,7 @@
         function copyCredentials() {
             const email = '<%= driver.email %>';
             const password = document.getElementById('driverPassword').textContent;
-            const loginUrl = 'http://localhost:3000/driver/login';
+            const loginUrl = 'https://palmvalleymedicalcenter.africa.com/driver/login';
             if (password && password !== 'Password not available') {
                 const text = `🔐 Driver Login Credentials\n\nEmail: ${email}\nPassword: ${password}\nLogin URL: ${loginUrl}`;
                 navigator.clipboard.writeText(text).then(() => alert('✅ All credentials copied!'))
@@ -507,7 +507,7 @@
         }
 
         function copyLoginUrl() {
-            const url = 'http://localhost:3000/driver/login';
+            const url = 'https://palmvalleymedicalcenter.africa.com/driver/login';
             navigator.clipboard.writeText(url).then(() => alert('✅ Login URL copied!'))
                 .catch(() => {
                     const input = document.createElement('input');
