@@ -391,8 +391,13 @@ router.get('/patient-dashboard', async (req, res) => {
     console.log('📋 profileComplete from session:', req.session.user.profileComplete);
     
     if (!user) {
-      req.flash('error_msg', 'User not found');
-      return res.redirect('/auth/login');
+      // FIX: destroy stale session instead of redirect loop
+      console.warn(`Stale session for user id ${req.session.user.id} - destroying`);
+      return req.session.destroy((err) => {
+        if (err) console.error('Session destroy error:', err);
+        res.clearCookie('connect.sid', { path: '/' });
+        return res.redirect('/auth/login');
+      });
     }
     
     req.session.user.profileComplete = user.profileComplete;
@@ -438,8 +443,13 @@ router.get('/nurse-dashboard', async (req, res) => {
     console.log('📋 profileComplete from session:', req.session.user.profileComplete);
 
     if (!user) {
-      req.flash('error_msg', 'User not found');
-      return res.redirect('/auth/login');
+      // FIX: destroy stale session instead of redirect loop
+      console.warn(`Stale session for user id ${req.session.user.id} - destroying`);
+      return req.session.destroy((err) => {
+        if (err) console.error('Session destroy error:', err);
+        res.clearCookie('connect.sid', { path: '/' });
+        return res.redirect('/auth/login');
+      });
     }
 
     req.session.user.profileComplete = user.profileComplete;

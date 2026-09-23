@@ -298,16 +298,36 @@ app.use('/admin', requireAdmin, adminAnnouncementRoutes);
 console.log('✅ All routes loaded with role-based protection');
 
 // ============ Homepage ============
-app.get('/', (req, res) => {
-  if (req.session.user) {
-    const dashboard = req.session.user.role === 'nurse'
-      ? '/auth/nurse-dashboard'
-      : '/auth/patient-dashboard';
-    return res.redirect(dashboard);
-  }
+app.get('/', async (req, res) => {
+  // Driver session - no DB check (drivers live in their own collection)
   if (req.session.driver) {
     return res.redirect('/driver/dashboard');
   }
+
+  // User session - verify the user still exists before redirecting
+  if (req.session.user) {
+    try {
+      const User = require('./models/User');
+      const user = await User.findById(req.session.user.id);
+      if (user && user.isVerified) {
+        const dashboard =
+          user.role === 'nurse' ? '/auth/nurse-dashboard' :
+          user.role === 'admin' ? '/admin/dashboard' :
+          '/auth/patient-dashboard';
+        return res.redirect(dashboard);
+      }
+    } catch (err) {
+      console.warn('Homepage session verify failed:', err.message);
+    }
+    // Stale session - destroy it and show the landing page
+    console.warn(`Stale session (homepage) for user id ${req.session.user.id} - destroying`);
+    return req.session.destroy((err) => {
+      if (err) console.error('Session destroy error:', err);
+      res.clearCookie('connect.sid', { path: '/' });
+      res.render('index', { title: 'Appointment Booking' });
+    });
+  }
+
   res.render('index', { title: 'Appointment Booking' });
 });
 
