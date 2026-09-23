@@ -334,7 +334,7 @@
             <div class="col-12">
                 <div class="card p-2 p-sm-3 deliveries-section">
                     <div class="deliveries-header">
-                        <h6 class="mb-0"><i class="bi bi-prescription"></i> My Deliveries</h6>
+                        <h6 class="mb-0"><i class="bi bi-box-seam"></i> My Deliveries</h6>
                         <span class="badge bg-info">Total: <%= orders ? orders.length : 0 %></span>
                     </div>
                     <% if (orders && orders.length > 0) { %>
@@ -352,7 +352,6 @@
                                         <% inTransitOrders.forEach(function(order) { %>
                                             <div class="order-card status-<%= order.status %>" data-status="<%= order.status %>">
                                                 <div class="fw-bold"><i class="bi bi-person"></i> <%= order.patientName %></div>
-                                                <small class="text-muted"><i class="bi bi-prescription"></i> <%= order.prescriptionName %></small>
                                                 <br>
                                                 <span class="status-badge status-<%= order.status %>"><i class="bi bi-truck"></i> In Transit</span>
                                                 <span class="priority-badge priority-<%= order.priority || 'medium' %>">
@@ -401,7 +400,6 @@
                                         <% deliveredOrders.forEach(function(order) { %>
                                             <div class="order-card delivered-card status-<%= order.status %>" data-status="<%= order.status %>">
                                                 <div class="fw-bold"><i class="bi bi-person"></i> <%= order.patientName %></div>
-                                                <small class="text-muted"><i class="bi bi-prescription"></i> <%= order.prescriptionName %></small>
                                                 <br>
                                                 <span class="status-badge status-<%= order.status %>"><i class="bi bi-check-circle"></i> Delivered</span>
                                                 <span class="priority-badge priority-<%= order.priority || 'medium' %>">
@@ -433,7 +431,7 @@
                         </div>
                     <% } else { %>
                         <div class="empty-state">
-                            <i class="bi bi-prescription"></i>
+                            <i class="bi bi-box-seam"></i>
                             <h4>No Orders Assigned</h4>
                             <p>You have no deliveries assigned at this time.</p>
                         </div>
