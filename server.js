@@ -66,6 +66,17 @@ const app = express();
 // ============ TRUST PROXY (required for Render HTTPS) ============
 app.set('trust proxy', 1);
 
+// ============ COLLAPSE DOUBLE SLASHES IN URLS ============
+// Prevents "Cannot GET //auth/reset/..." from malformed links (old emails)
+app.use((req, res, next) => {
+  if (req.url.includes('//')) {
+    const cleaned = req.url.replace(/\/{2,}/g, '/');
+    console.log('Collapsing double slash: ' + req.url + ' -> ' + cleaned);
+    return res.redirect(301, cleaned);
+  }
+  next();
+});
+
 // ============ REQUEST TIMEOUT (protects server from slow clients) ============
 app.use((req, res, next) => {
   const TIMEOUT_MS = 45000;   // 45s — generous for uploads on slow links
