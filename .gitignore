@@ -28,3 +28,5 @@ coverage/
 
 # iisnode
 iisnode/
+# Corrupted file backups
+*.broken-*
