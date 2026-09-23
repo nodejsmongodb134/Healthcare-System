@@ -5,6 +5,7 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const path = require('path');
 const http = require('http');
+const https = require('https');                 // ✅ NEW — for keep-alive ping
 const socketIo = require('socket.io');
 const cookieParser = require('cookie-parser');
 const fs = require('fs');
@@ -239,6 +240,17 @@ app.use((req, res, next) => {
   res.locals.user   = req.session.user   || null;
   res.locals.driver = req.session.driver || null;
   next();
+});
+
+// ============================================================
+// ============ HEALTH CHECK (Render keep-alive target) =======
+// ============================================================
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // ============================================================
@@ -535,13 +547,50 @@ io.on('connection', (socket) => {
 
 app.set('io', io);
 
-// ============ Start Server ============
+// ============================================================
+// ============ KEEP-ALIVE SELF-PING ==========================
+// ============================================================
+// Render's free tier spins down after 15 minutes of inactivity.
+// Pinging our own public URL every 14 minutes keeps the service awake.
+// Only runs in production; never locally or during tests.
+// ============================================================
+
+function keepAlive() {
+  const url = process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL;
+  if (!url) {
+    console.warn('💓 Keep-alive skipped: RENDER_EXTERNAL_URL / BASE_URL not set');
+    return;
+  }
+
+  const lib = url.startsWith('https') ? https : http;
+  const pingUrl = `${url.replace(/\/$/, '')}/health`;
+
+  lib.get(pingUrl, (res) => {
+    console.log(`💓 Keep-alive → ${pingUrl} [${res.statusCode}]`);
+    res.resume(); // drain response body
+  }).on('error', (err) => {
+    console.warn(`⚠️  Keep-alive ping failed: ${err.message}`);
+  });
+}
+
+// ============================================================
+// ============ START SERVER =================================
+// ============================================================
 const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
-  server.listen(PORT,'0.0.0.0',() => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
     console.log(`🔒 Security: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'} mode`);
+
+    // Schedule keep-alive ONLY in production
+    if (process.env.NODE_ENV === 'production') {
+      // First ping after 30s (let server finish booting)
+      setTimeout(keepAlive, 30 * 1000);
+      // Then every 14 minutes
+      setInterval(keepAlive, 14 * 60 * 1000);
+      console.log('💓 Keep-alive scheduled (every 14 min)');
+    }
   });
 }
 
