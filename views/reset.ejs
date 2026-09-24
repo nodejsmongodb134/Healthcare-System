@@ -74,6 +74,35 @@
             background: #fff;
         }
 
+        /* ========== PASSWORD TOGGLE ========== */
+        .input-group > .form-control {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .input-group > .btn-toggle-pw {
+            border: 1.5px solid #e2e8f0;
+            border-left: none;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+            background: #f7fafc;
+            color: #4a5568;
+            padding: 0 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s, background 0.15s;
+            min-width: 46px;
+        }
+        .input-group > .btn-toggle-pw:hover,
+        .input-group > .btn-toggle-pw:focus {
+            background: #edf2f7;
+            color: #1a4d5c;
+            outline: none;
+            box-shadow: none;
+        }
+        .input-group > .btn-toggle-pw i { font-size: 1.05rem; }
+        .input-group:focus-within > .btn-toggle-pw { border-color: #667eea; }
+
         .pw-reqs {
             font-size: 0.75rem;
             color: #718096;
@@ -144,6 +173,7 @@
             .link-row { font-size: 0.8rem; }
             .pw-reqs { font-size: 0.7rem; }
             .pw-reqs .req { display: block; margin-right: 0; }
+            .input-group > .btn-toggle-pw { min-width: 42px; padding: 0 0.7rem; }
         }
         @media (min-width: 576px) and (max-width: 991.98px) {
             .form-area { padding: 32px 32px 28px; }
@@ -185,14 +215,24 @@
                                 <label for="password" class="form-label">
                                     <i class="bi bi-lock"></i> New Password
                                 </label>
-                                <input type="password"
-                                       class="form-control"
-                                       id="password"
-                                       name="password"
-                                       placeholder="Create a strong password"
-                                       autocomplete="new-password"
-                                       onkeyup="checkPassword(this.value)"
-                                       required minlength="6">
+                                <div class="input-group">
+                                    <input type="password"
+                                           class="form-control"
+                                           id="password"
+                                           name="password"
+                                           placeholder="Create a strong password"
+                                           autocomplete="new-password"
+                                           onkeyup="checkPassword(this.value)"
+                                           required minlength="6">
+                                    <button type="button"
+                                            class="btn btn-toggle-pw"
+                                            data-toggle-password="password"
+                                            aria-label="Show password"
+                                            aria-pressed="false"
+                                            title="Show password">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
 
                                 <div class="pw-reqs">
                                     <span class="req invalid" id="reqLen">
@@ -217,13 +257,23 @@
                                 <label for="confirmPassword" class="form-label">
                                     <i class="bi bi-check-circle"></i> Confirm Password
                                 </label>
-                                <input type="password"
-                                       class="form-control"
-                                       id="confirmPassword"
-                                       name="confirmPassword"
-                                       placeholder="Re-enter your new password"
-                                       autocomplete="new-password"
-                                       required>
+                                <div class="input-group">
+                                    <input type="password"
+                                           class="form-control"
+                                           id="confirmPassword"
+                                           name="confirmPassword"
+                                           placeholder="Re-enter your new password"
+                                           autocomplete="new-password"
+                                           required>
+                                    <button type="button"
+                                            class="btn btn-toggle-pw"
+                                            data-toggle-password="confirmPassword"
+                                            aria-label="Show confirm password"
+                                            aria-pressed="false"
+                                            title="Show confirm password">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="d-grid">
@@ -269,6 +319,26 @@
                 }
             });
         }
+    </script>
+
+    <!-- ===================== PASSWORD TOGGLE (generic) ===================== -->
+    <script>
+        (function () {
+            document.querySelectorAll('[data-toggle-password]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var input = document.getElementById(btn.getAttribute('data-toggle-password'));
+                    if (!input) return;
+                    var show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    var icon = btn.querySelector('i');
+                    if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+                    btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+                    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                    btn.setAttribute('title', show ? 'Hide password' : 'Show password');
+                    input.focus();
+                });
+            });
+        })();
     </script>
 </body>
 </html>

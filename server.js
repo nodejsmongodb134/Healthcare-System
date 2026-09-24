@@ -610,7 +610,7 @@ function keepAlive() {
 const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
-  server.listen(PORT, '0.0.0.0', () => {
+  server.listen(PORT, () => {
     console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
     console.log(`🔒 Security: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'} mode`);
 

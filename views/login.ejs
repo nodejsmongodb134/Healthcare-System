@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="icon" type="image/jpeg" href="/images/palmvalley-logo.jpg">
     <style>
-        /* ========== GLOBAL ========== */
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -25,13 +24,12 @@
         }
         .card-body { padding: 0; }
 
-        /* ========== FULL-WIDTH LOGO BANNER ========== */
         .logo-banner {
             width: 100%;
             background: #ffffff;
             border-bottom: 1px solid #edf2f7;
             overflow: hidden;
-            line-height: 0; /* removes tiny gap under the image */
+            line-height: 0;
         }
         .logo-banner img {
             display: block;
@@ -40,12 +38,8 @@
             object-fit: contain;
         }
 
-        /* ========== FORM AREA (padding lives here now) ========== */
-        .form-area {
-            padding: 36px 40px 32px;
-        }
+        .form-area { padding: 36px 40px 32px; }
 
-        /* ========== HEADING ========== */
         .page-title {
             text-align: center;
             color: #1a202c;
@@ -61,7 +55,6 @@
             margin-bottom: 24px;
         }
 
-        /* ========== FORM ========== */
         .form-label {
             font-weight: 600;
             color: #4a5568;
@@ -82,7 +75,35 @@
             background: #fff;
         }
 
-        /* ========== BUTTON ========== */
+        /* ========== PASSWORD TOGGLE ========== */
+        .input-group > .form-control {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .input-group > .btn-toggle-pw {
+            border: 1.5px solid #e2e8f0;
+            border-left: none;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+            background: #f7fafc;
+            color: #4a5568;
+            padding: 0 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s, background 0.15s;
+            min-width: 46px;
+        }
+        .input-group > .btn-toggle-pw:hover,
+        .input-group > .btn-toggle-pw:focus {
+            background: #edf2f7;
+            color: #1a4d5c;
+            outline: none;
+            box-shadow: none;
+        }
+        .input-group > .btn-toggle-pw i { font-size: 1.05rem; }
+        .input-group:focus-within > .btn-toggle-pw { border-color: #667eea; }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -100,7 +121,6 @@
             box-shadow: 0 10px 26px rgba(102,126,234,0.45);
         }
 
-        /* ========== LINKS ========== */
         .link-row {
             text-align: center;
             margin-top: 14px;
@@ -118,7 +138,6 @@
             text-decoration: underline;
         }
 
-        /* ========== FOOTER ========== */
         .pv-footer {
             text-align: center;
             color: rgba(255,255,255,0.85);
@@ -127,7 +146,6 @@
         }
         .pv-footer i { color: #ffd166; margin-right: 4px; }
 
-        /* ========== RESPONSIVE ========== */
         @media (max-width: 575.98px) {
             body { padding: 10px 0; }
             .card { border-radius: 18px; margin: 0 10px; }
@@ -136,6 +154,7 @@
             .page-subtitle { font-size: 0.78rem; margin-bottom: 18px; }
             .form-control { font-size: 0.95rem; padding: 0.55rem 0.8rem; }
             .link-row { font-size: 0.8rem; }
+            .input-group > .btn-toggle-pw { min-width: 42px; padding: 0 0.7rem; }
         }
         @media (min-width: 576px) and (max-width: 991.98px) {
             .form-area { padding: 32px 32px 28px; }
@@ -155,13 +174,11 @@
 
                 <div class="card">
 
-                    <!-- ===================== FULL-WIDTH LOGO BANNER ===================== -->
                     <div class="logo-banner">
-                        <img src="/images/palmvalley-logo.jpg?"
+                        <img src="/images/palmvalley-logo.jpg"
                              alt="Palm Valley Medical Center">
                     </div>
 
-                    <!-- ===================== FORM AREA ===================== -->
                     <div class="form-area">
 
                         <p class="page-title">
@@ -190,13 +207,23 @@
                                 <label for="password" class="form-label">
                                     <i class="bi bi-lock"></i> Password
                                 </label>
-                                <input type="password"
-                                       class="form-control"
-                                       id="password"
-                                       name="password"
-                                       placeholder="Enter your password"
-                                       autocomplete="current-password"
-                                       required>
+                                <div class="input-group">
+                                    <input type="password"
+                                           class="form-control"
+                                           id="password"
+                                           name="password"
+                                           placeholder="Enter your password"
+                                           autocomplete="current-password"
+                                           required>
+                                    <button type="button"
+                                            class="btn btn-toggle-pw"
+                                            data-toggle-password="password"
+                                            aria-label="Show password"
+                                            aria-pressed="false"
+                                            title="Show password">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="d-grid">
@@ -229,5 +256,25 @@
             </div>
         </div>
     </div>
+
+    <!-- ===================== PASSWORD TOGGLE (generic) ===================== -->
+    <script>
+        (function () {
+            document.querySelectorAll('[data-toggle-password]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var input = document.getElementById(btn.getAttribute('data-toggle-password'));
+                    if (!input) return;
+                    var show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    var icon = btn.querySelector('i');
+                    if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+                    btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+                    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                    btn.setAttribute('title', show ? 'Hide password' : 'Show password');
+                    input.focus();
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
