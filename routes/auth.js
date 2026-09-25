@@ -24,8 +24,14 @@ function clearStaleSession(req, res, reason) {
   return req.session.destroy((err) => {
     if (err) console.error('Session destroy error:', err);
     res.clearCookie('connect.sid', { path: '/' });
+    res.clearCookie('x-csrf-token', { path: '/' });
     return res.redirect('/auth/login');
   });
+}
+
+// Clear CSRF cookie bound to the old session — called after session regeneration
+function clearCsrfCookie(res) {
+  res.clearCookie('x-csrf-token', { path: '/' });
 }
 
 // Check if the session's user still exists and is verified.
@@ -197,7 +203,6 @@ router.get('/verify/:token', async (req, res) => {
 
     console.log('User verified:', user.email);
 
-    // FIX: regenerate session to prevent session fixation
     const userData = {
       id: user._id,
       name: user.name,
@@ -214,6 +219,9 @@ router.get('/verify/:token', async (req, res) => {
         req.flash('success_msg', 'Email verified successfully! Please login.');
         return res.redirect('/auth/login');
       }
+
+      // FIX 1: drop the CSRF cookie bound to the old session
+      clearCsrfCookie(res);
 
       req.session.user = userData;
       req.session.save((saveErr) => {
@@ -381,6 +389,12 @@ router.post('/login', async (req, res) => {
         return res.redirect('/auth/login');
       }
 
+      // FIX 1: drop the CSRF cookie bound to the old session.
+      // Without this, the browser holds a token tied to the old
+      // session ID; any POST in the window between regenerate and
+      // the next GET gets rejected — forcing a second login attempt.
+      clearCsrfCookie(res);
+
       req.session.user = userData;
       console.log('User logged in (new session):', user.email);
 
@@ -503,6 +517,7 @@ router.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) console.error('Logout error:', err);
     res.clearCookie('connect.sid', { path: '/' });
+    res.clearCookie('x-csrf-token', { path: '/' });
     res.redirect('/auth/login');
   });
 });
