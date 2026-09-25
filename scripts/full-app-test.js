@@ -495,8 +495,15 @@ async function testAdmin() {
       cookies: jar,
       body: { email: email, password: password, _csrf: csrf }
     });
-    if (r.status === 302) pass('admin login -> 302');
-    else fail('admin login -> ' + r.status);
+    if (r.status === 302 && r.location === '/admin/dashboard') {
+      pass('admin login -> 302 (to /admin/dashboard)');
+    } else if (r.status === 302) {
+      fail('admin login -> 302 but redirected to ' + r.location + ' (login failed)');
+      return;
+    } else {
+      fail('admin login -> ' + r.status + ' (location: ' + (r.location || 'none') + ')');
+      return;
+    }
     jar = mergeCookies(jar, r.setCookies);
   } catch (err) {
     fail('admin login threw: ' + err.message);

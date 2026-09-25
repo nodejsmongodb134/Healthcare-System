@@ -38,6 +38,64 @@
             .info-label { width: 100%; margin-bottom: 2px; }
             .info-value { width: 100%; }
         }
+    
+        /* ========== MOBILE-FRIENDLY NURSE NAVBAR (matches patient.ejs) ========== */
+        .nurse-welcome {
+            color: rgba(255,255,255,0.92);
+            font-size: 0.85rem;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            margin-bottom: 8px;
+        }
+        .nurse-welcome i { margin-right: 4px; }
+        .nurse-nav .nav-link {
+            color: rgba(255,255,255,0.9);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s;
+            margin: 2px 0;
+        }
+        .nurse-nav .nav-link i { font-size: 1.05rem; width: 20px; text-align: center; }
+        .nurse-nav .nav-link:hover,
+        .nurse-nav .nav-link.active { background: rgba(255,255,255,0.15); color: white; }
+        .nurse-logout .nav-link { color: #ffb3b3; }
+        .nurse-logout .nav-link:hover { background: rgba(220,53,69,0.25); color: white; }
+        @media (min-width: 992px) {
+            .nurse-welcome {
+                border-bottom: none;
+                border-right: 1px solid rgba(255,255,255,0.2);
+                margin-bottom: 0;
+                margin-right: 8px;
+                padding: 6px 14px 6px 0;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .nurse-nav .nav-link { padding: 6px 8px; font-size: 0.78rem; }
+            .nurse-nav .nav-link i { font-size: 0.9rem; width: 16px; }
+            .nurse-logout {
+                margin-left: 4px;
+                padding-left: 4px;
+                border-left: 1px solid rgba(255,255,255,0.2);
+            }
+        }
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background: rgba(255,255,255,0.08);
+                border-radius: 12px;
+                padding: 10px;
+                margin-top: 10px;
+            }
+            .nurse-welcome { color: white; }
+            .nurse-nav .nav-link { padding: 12px 14px; font-size: 0.95rem; min-height: 44px; }
+            .nurse-nav .nav-link i { font-size: 1.15rem; }
+        }
+
     </style>
 </head>
 <body>
@@ -45,17 +103,67 @@
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#"><i class="bi bi-calendar-check"></i> Appointment Booking</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="/auth/nurse-dashboard">
+                <i class="bi bi-heart-pulse"></i> Nurse Portal
+            </a>
+
+            <button class="navbar-toggler" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
+                <div class="nurse-welcome">
+                    <i class="bi bi-person-circle"></i>
+                    Welcome, <strong><%= user.name %></strong>
+                    <span class="badge bg-light text-dark ms-1"><%= user.role %></span>
+                </div>
+
+                <ul class="navbar-nav ms-auto align-items-lg-center nurse-nav">
                     <li class="nav-item">
-                        <span class="navbar-text text-white me-3"><i class="bi bi-person-circle"></i> <%= user.name %><span class="badge bg-light text-dark ms-2"><%= user.role %></span></span>
+                        <a class="nav-link" href="/nurse/nurse-appointments">
+                            <i class="bi bi-calendar-check"></i> Appointments
+                        </a>
                     </li>
-                    <li class="nav-item"><a href="/nurse/nurse-orders" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-arrow-left"></i> Back</a></li>
-                    <li class="nav-item"><a href="/auth/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/nurse/nurse-messages">
+                            <i class="bi bi-envelope"></i> Messages
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/nurse/nurse-patients">
+                            <i class="bi bi-people"></i> Patients
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/nurse/drivers">
+                            <i class="bi bi-truck"></i> Drivers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/nurse/nurse-orders">
+                            <i class="bi bi-prescription"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/nurse-dashboard#sms-campaigns">
+                            <i class="bi bi-megaphone"></i> SMS Campaigns
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/nurse/profile">
+                            <i class="bi bi-person-badge"></i> Profile
+                        </a>
+                    </li>
+                    <li class="nav-item nurse-logout">
+                        <a class="nav-link" href="/auth/logout">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
