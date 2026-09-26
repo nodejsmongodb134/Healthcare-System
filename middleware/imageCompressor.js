@@ -5,10 +5,10 @@ const path = require('path');
 const { uploadToCloudinary } = require('../utils/cloudinaryUpload');
 
 // ===== Config =====
-const MAX_WIDTH   = 1600;
-const MAX_HEIGHT  = 1600;
-const JPEG_QUALITY = 78;
-const WEBP_QUALITY = 80;
+const MAX_WIDTH   = 1200;
+const MAX_HEIGHT  = 1200;
+const JPEG_QUALITY = 65;
+const WEBP_QUALITY = 72;
 const MIN_SIZE_TO_COMPRESS = 30 * 1024; // skip files < 30 KB
 
 /**
@@ -41,7 +41,7 @@ async function compressImage(filePath) {
 
   // Keep the same format
   if (format === 'jpeg' || format === 'jpg') {
-    pipeline = pipeline.jpeg({ quality: JPEG_QUALITY, progressive: true, mozjpeg: true });
+    pipeline = pipeline.jpeg({ quality: JPEG_QUALITY, progressive: true, mozjpeg: true, chromaSubsampling: '4:2:0' });
   } else if (format === 'png') {
     pipeline = pipeline.png({ compressionLevel: 9, palette: true, quality: 85 });
   } else if (format === 'webp') {

@@ -413,16 +413,18 @@
         }
 
         function setupMap() {
-            const tileUrl = useOfflineTiles
-                ? '/tiles/{z}/{x}/{y}.png'
-                : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-            map = L.map('map').setView([-22.5609, 17.0658], 12);
-
-            L.tileLayer(tileUrl, {
+            // Online high-quality tiles (Carto Light, retina-aware)
+            L.tileLayer('https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                attribution: '© OpenStreetMap contributors',
-                errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8//8/AwAI/AL+fH5B4AAAAABJRU5ErkJggg=='
+                detectRetina: false,
+                attribution: '© OpenStreetMap © CARTO'
+            }).addTo(map);
+
+            // Offline tiles layered on top (only cover the downloaded region)
+            L.tileLayer('/tiles/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                maxNativeZoom: 16,
+                attribution: 'Offline Map'
             }).addTo(map);
 
             socket.emit('get-active-drivers');

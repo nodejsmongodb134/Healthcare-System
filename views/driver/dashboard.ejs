@@ -623,7 +623,26 @@
         let currentAccuracy = 0;
         let locationFound = false;
         let lastEmitTime = 0;
-        const EMIT_INTERVAL_MS = 2000;
+        const EMIT_INTERVAL_MS_IDLE   = 15000;   // 15 s - parked
+        const EMIT_INTERVAL_MS_MOVING = 5000;    // 5 s  - moving
+        const EMIT_INTERVAL_MS_NAV    = 2000;    // 2 s  - navigating
+
+        // Skip emit if location has not moved at least this many metres
+        const MOVE_THRESHOLD_M = 15;
+
+        let lastEmittedLat = null;
+        let lastEmittedLng = null;
+
+        function distanceMetres(lat1, lng1, lat2, lng2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) ** 2 +
+                      Math.cos(lat1 * Math.PI / 180) *
+                      Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng / 2) ** 2;
+            return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
 
         // ========== REFRESH PAGE ==========
         function refreshPage() {
@@ -737,19 +756,32 @@
                     document.getElementById('gpsStatus').className = 'gps-status active';
 
                     const now = Date.now();
-                    if (now - lastEmitTime >= EMIT_INTERVAL_MS) {
-                        lastEmitTime = now;
-                        if (socket && socket.connected) {
-                            socket.emit('driver-location-update', {
-                                latitude: lat,
-                                longitude: lng,
-                                accuracy: accuracy,
-                                speed: speed,
-                                timestamp: now
-                            });
-                            console.log('📍 Sent:', lat.toFixed(5), lng.toFixed(5), '±' + Math.round(accuracy) + 'm');
-                        } else {
-                            console.warn('⚠️ Socket not connected — skipping emit');
+
+                    const emitInterval = isNavigating
+                        ? EMIT_INTERVAL_MS_NAV
+                        : (speed > 1.5 ? EMIT_INTERVAL_MS_MOVING : EMIT_INTERVAL_MS_IDLE);
+
+                    if (now - lastEmitTime >= emitInterval) {
+                        const movedEnough = lastEmittedLat === null ||
+                            distanceMetres(lastEmittedLat, lastEmittedLng, lat, lng) >= MOVE_THRESHOLD_M;
+
+                        if (movedEnough || isNavigating) {
+                            lastEmitTime = now;
+                            lastEmittedLat = lat;
+                            lastEmittedLng = lng;
+
+                            if (socket && socket.connected) {
+                                socket.emit('driver-location-update', {
+                                    latitude: lat,
+                                    longitude: lng,
+                                    accuracy: accuracy,
+                                    speed: speed,
+                                    timestamp: now
+                                });
+                                console.log('\uD83D\uDCCD Sent [' + (isNavigating ? 'NAV' : speed > 1.5 ? 'MOV' : 'IDLE') + ']:', lat.toFixed(5), lng.toFixed(5), '\u00B1' + Math.round(accuracy) + 'm');
+                            } else {
+                                console.warn('\u26A0\uFE0F Socket not connected \u2014 skipping emit');
+                            }
                         }
                     }
 
@@ -829,11 +861,18 @@
                 attributionControl: true
             });
 
+            // Online high-quality tiles (Carto Light, retina-aware)
+            L.tileLayer('https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap © CARTO',
+                maxZoom: 19,
+                detectRetina: false
+            }).addTo(map);
+
+            // Offline tiles layered on top (only cover the downloaded region)
             L.tileLayer('/tiles/{z}/{x}/{y}.png', {
-                attribution: 'Offline Map',
                 maxZoom: 19,
                 maxNativeZoom: 16,
-                errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8//8/AwAI/AL+fH5B4AAAAABJRU5ErkJggg=='
+                attribution: 'Offline Map'
             }).addTo(map);
 
             // ========== GREEN DOT DRIVER MARKER ==========
