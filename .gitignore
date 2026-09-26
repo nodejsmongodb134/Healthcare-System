@@ -36,3 +36,5 @@ scripts/
 
 # Scripts (dev tools)
 scripts/
+
+*.bak-index-*

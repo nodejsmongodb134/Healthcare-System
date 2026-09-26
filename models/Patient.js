@@ -55,6 +55,9 @@ PatientSchema.pre('save', async function () {
   }
 });
 
+
+PatientSchema.index({ isChronic: 1 });
+
 PatientSchema.plugin(encryptionPlugin);
 
 module.exports = mongoose.model('Patient', PatientSchema);

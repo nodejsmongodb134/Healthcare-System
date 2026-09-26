@@ -35,4 +35,8 @@ const DriverLocationSchema = new mongoose.Schema({
   }
 });
 
+
+DriverLocationSchema.index({ driverId: 1, timestamp: -1 });
+
+
 module.exports = mongoose.model('DriverLocation', DriverLocationSchema);

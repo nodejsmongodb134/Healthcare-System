@@ -46,6 +46,9 @@ DriverSchema.pre('save', async function () {
   }
 });
 
+
+DriverSchema.index({ status: 1 });
+
 DriverSchema.plugin(encryptionPlugin);
 
 module.exports = mongoose.model('Driver', DriverSchema);

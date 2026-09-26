@@ -47,6 +47,10 @@ UserSchema.pre('save', async function () {
   }
 });
 
+
+UserSchema.index({ role: 1 });
+UserSchema.index({ role: 1, isVerified: 1 });
+
 UserSchema.plugin(encryptionPlugin);
 
 module.exports = mongoose.model('User', UserSchema);

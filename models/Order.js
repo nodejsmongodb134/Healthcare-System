@@ -107,6 +107,9 @@ OrderSchema.index({ driverId: 1, status: 1 });
 OrderSchema.index({ status: 1 });
 
 // Apply AES-256-GCM encryption plugin
+
+OrderSchema.index({ createdAt: -1 });
+
 OrderSchema.plugin(encryptionPlugin);
 
 module.exports = mongoose.model('Order', OrderSchema);

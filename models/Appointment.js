@@ -72,6 +72,10 @@ AppointmentSchema.index({ patientId: 1, date: -1 });
 AppointmentSchema.index({ date: 1, status: 1 });
 
 // Apply AES-256-GCM encryption plugin
+
+AppointmentSchema.index({ status: 1 });
+AppointmentSchema.index({ nurseId: 1 });
+
 AppointmentSchema.plugin(encryptionPlugin);
 
 module.exports = mongoose.model('Appointment', AppointmentSchema);
