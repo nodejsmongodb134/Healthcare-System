@@ -83,7 +83,9 @@ router.get('/dashboard', adminMiddleware, async (req, res) => {
 // LIST
 router.get('/appointments', adminMiddleware, async (req, res) => {
   try {
-    const appointments = await Appointment.find().sort({ createdAt: -1 });
+    const appointments = await Appointment.find()
+      .select('patientName date time status description')
+      .sort({ createdAt: -1 });
     res.render('admin/list', {
       title: 'All Appointments',
       user: req.session.user,
@@ -122,7 +124,9 @@ router.get('/appointments/:id', adminMiddleware, async (req, res) => {
 // LIST
 router.get('/messages', adminMiddleware, async (req, res) => {
   try {
-    const messages = await Message.find().sort({ createdAt: -1 });
+    const messages = await Message.find()
+      .select('patientName subject status createdAt')
+      .sort({ createdAt: -1 });
     res.render('admin/list', {
       title: 'All Messages',
       user: req.session.user,
@@ -161,7 +165,9 @@ router.get('/messages/:id', adminMiddleware, async (req, res) => {
 // LIST
 router.get('/orders', adminMiddleware, async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find()
+      .select('patientName prescriptionName status location orderDate')
+      .sort({ createdAt: -1 });
     res.render('admin/list', {
       title: 'All Orders',
       user: req.session.user,
@@ -199,7 +205,9 @@ router.get('/orders/:id', adminMiddleware, async (req, res) => {
 // ===================== PATIENTS =====================
 router.get('/patients', adminMiddleware, async (req, res) => {
   try {
-    const patients = await User.find({ role: 'patient' }).sort({ createdAt: -1 }).select('-password');
+    const patients = await User.find({ role: 'patient' })
+      .select('name email isVerified createdAt')
+      .sort({ createdAt: -1 });
     res.render('admin/list', {
       title: 'All Patients',
       user: req.session.user,
@@ -245,7 +253,9 @@ router.get('/patients/:id', adminMiddleware, async (req, res) => {
 // ===================== DRIVERS =====================
 router.get('/drivers', adminMiddleware, async (req, res) => {
   try {
-    const drivers = await Driver.find().sort({ createdAt: -1 });
+    const drivers = await Driver.find()
+      .select('name email phone status vehicleType')
+      .sort({ createdAt: -1 });
     res.render('admin/list', {
       title: 'All Drivers',
       user: req.session.user,
@@ -286,7 +296,9 @@ router.get('/drivers/:id', adminMiddleware, async (req, res) => {
 // LIST
 router.get('/nurses', adminMiddleware, async (req, res) => {
   try {
-    const nurses = await User.find({ role: 'nurse' }).sort({ createdAt: -1 }).select('-password');
+    const nurses = await User.find({ role: 'nurse' })
+      .select('name email isVerified createdAt')
+      .sort({ createdAt: -1 });
     res.render('admin/list', {
       title: 'All Nurses',
       user: req.session.user,

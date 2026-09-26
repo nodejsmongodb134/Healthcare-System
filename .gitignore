@@ -38,3 +38,5 @@ scripts/
 scripts/
 
 *.bak-index-*
+
+*.bak-select-*
