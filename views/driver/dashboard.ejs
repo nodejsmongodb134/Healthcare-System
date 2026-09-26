@@ -49,12 +49,6 @@
         .gps-status.active { background: #28a745; color: white; }
         .gps-status.inactive { background: #dc3545; color: white; }
         .gps-status.searching { background: #ffc107; color: #856404; }
-        .quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-        .quick-actions .card { text-align: center; padding: 12px 8px; cursor: pointer; transition: all 0.2s; border: none; border-radius: 10px; }
-        .quick-actions .card:active { transform: scale(0.95); }
-        .quick-actions .card i { font-size: 1.5rem; color: #667eea; margin-bottom: 4px; }
-        .quick-actions .card h6 { font-size: 0.75rem; margin-bottom: 2px; font-weight: 600; }
-        .quick-actions .card p { font-size: 0.65rem; color: #666; margin-bottom: 0; }
         .delivery-info { padding: 8px 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; }
         .delivery-info strong { font-size: 0.8rem; }
         .route-info { background: white; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border-left: 3px solid #28a745; font-size: 0.8rem; }
@@ -77,7 +71,98 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* ========== ORDER LIST CONTAINER (scrollable) ========== */
+        /* ========== REFRESH PAGE BUTTON ========== */
+        .refresh-page-btn {
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+        .refresh-page-btn i {
+            font-size: 0.85rem;
+            transition: transform 0.3s;
+        }
+        .refresh-page-btn:hover i {
+            transform: rotate(180deg);
+        }
+
+        /* ========== DELIVERIES HEADER ========== */
+        .deliveries-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .deliveries-header h6 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .deliveries-header .badge {
+            font-size: 0.7rem;
+        }
+
+        /* ========== MOBILE-FRIENDLY DRIVER NAVBAR ========== */
+        .driver-welcome {
+            color: rgba(255,255,255,0.92);
+            font-size: 0.85rem;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .driver-welcome i { margin-right: 2px; }
+        .driver-nav .nav-link {
+            color: rgba(255,255,255,0.9);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s;
+            margin: 2px 0;
+        }
+        .driver-nav .nav-link i { font-size: 1.05rem; width: 20px; text-align: center; }
+        .driver-nav .nav-link:hover,
+        .driver-nav .nav-link.active { background: rgba(255,255,255,0.15); color: white; }
+        .driver-logout .nav-link { color: #ffb3b3; }
+        .driver-logout .nav-link:hover { background: rgba(220,53,69,0.25); color: white; }
+        @media (min-width: 992px) {
+            .driver-welcome {
+                border-bottom: none;
+                border-right: 1px solid rgba(255,255,255,0.2);
+                margin-bottom: 0;
+                margin-right: 8px;
+                padding: 6px 14px 6px 0;
+            }
+            .driver-nav .nav-link { padding: 6px 10px; font-size: 0.82rem; }
+            .driver-nav .nav-link i { font-size: 0.9rem; width: 16px; }
+            .driver-logout {
+                margin-left: 4px;
+                padding-left: 4px;
+                border-left: 1px solid rgba(255,255,255,0.2);
+            }
+        }
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background: rgba(255,255,255,0.08);
+                border-radius: 12px;
+                padding: 10px;
+                margin-top: 10px;
+            }
+            .driver-welcome { color: white; }
+            .driver-nav .nav-link { padding: 12px 14px; font-size: 0.95rem; min-height: 44px; }
+            .driver-nav .nav-link i { font-size: 1.15rem; }
+        }
+
+        /* ========== ORDER LIST CONTAINER ========== */
         .order-list-container {
             max-height: none;
             overflow-y: visible;
@@ -153,11 +238,6 @@
             .order-card .status-badge { font-size: 0.6rem; padding: 2px 8px; }
             .priority-badge { font-size: 0.6rem; padding: 2px 8px; }
             #map { height: 250px; }
-            .quick-actions { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-            .quick-actions .card { padding: 8px 4px; }
-            .quick-actions .card i { font-size: 1.2rem; }
-            .quick-actions .card h6 { font-size: 0.65rem; }
-            .quick-actions .card p { font-size: 0.55rem; }
             .in-transit-column { border-right: none; border-bottom: 1px solid #e9ecef; padding-right: 0; padding-bottom: 15px; margin-bottom: 15px; }
             .delivered-column { padding-left: 0; }
             .column-header { font-size: 0.8rem; }
@@ -179,16 +259,13 @@
                 padding-right: 4px;
             }
             .voice-btn { font-size: 0.6rem !important; padding: 3px 6px !important; }
+            .refresh-page-btn { font-size: 0.6rem !important; padding: 3px 8px !important; }
             .driver-info-list .info-label { font-size: 0.75rem; }
             .driver-info-list .info-value { font-size: 0.78rem; }
             .driver-avatar { width: 42px; height: 42px; font-size: 1.1rem; }
+            .deliveries-header h6 { font-size: 0.88rem; }
         }
         @media (max-width: 400px) {
-            .quick-actions { grid-template-columns: repeat(3, 1fr); gap: 4px; }
-            .quick-actions .card { padding: 6px 2px; }
-            .quick-actions .card i { font-size: 1rem; }
-            .quick-actions .card h6 { font-size: 0.55rem; }
-            .quick-actions .card p { font-size: 0.5rem; }
             .order-card .action-buttons .btn { font-size: 0.55rem; padding: 2px 5px; min-width: 40px; }
         }
         @media (min-width: 576px) and (max-width: 991.98px) {
@@ -209,23 +286,40 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#"><i class="bi bi-truck"></i> Driver Portal</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="/driver/dashboard">
+                <i class="bi bi-truck"></i> Driver Portal
+            </a>
+
+            <button class="navbar-toggler" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item me-2">
-                        <span class="navbar-text text-white d-none d-sm-inline">
-                            <i class="bi bi-person-circle"></i> <%= driver.name %>
-                        </span>
-                    </li>
-                    <li class="nav-item me-2">
-                        <span class="badge bg-light text-dark"><%= driver.status %></span>
+                <div class="driver-welcome">
+                    <i class="bi bi-person-circle"></i>
+                    <strong><%= driver.name %></strong>
+                    <span class="badge bg-light text-dark"><%= driver.status %></span>
+                </div>
+
+                <ul class="navbar-nav ms-auto align-items-lg-center driver-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/driver/dashboard">
+                            <i class="bi bi-house"></i> Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/driver/logout" class="btn btn-outline-light btn-sm">
-                            <i class="bi bi-box-arrow-right"></i>
+                        <a class="nav-link" href="/driver/change-password">
+                            <i class="bi bi-key"></i> Password
+                        </a>
+                    </li>
+                    <li class="nav-item driver-logout">
+                        <a class="nav-link" href="/driver/logout">
+                            <i class="bi bi-box-arrow-right"></i> Logout
                         </a>
                     </li>
                 </ul>
@@ -248,24 +342,6 @@
 
         <%- include('../partials/flash') %>
 
-        <div class="quick-actions">
-            <a href="/driver/dashboard" class="card text-decoration-none">
-                <i class="bi bi-house"></i>
-                <h6>Dashboard</h6>
-                <p>Home</p>
-            </a>
-            <a href="/driver/change-password" class="card text-decoration-none">
-                <i class="bi bi-key"></i>
-                <h6>Password</h6>
-                <p>Change</p>
-            </a>
-            <a href="/driver/logout" class="card text-decoration-none">
-                <i class="bi bi-box-arrow-right"></i>
-                <h6>Logout</h6>
-                <p>Sign out</p>
-            </a>
-        </div>
-
         <div class="row mt-2">
             <div class="col-12">
                 <div class="navigation-controls">
@@ -286,6 +362,9 @@
                             <button class="btn btn-info btn-sm voice-btn" id="voiceToggleBtn" onclick="toggleVoice()">
                                 <span class="voice-indicator active" id="voiceIndicator"></span>
                                 <i class="bi bi-volume-up"></i> <span id="voiceStatus">Voice</span>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm refresh-page-btn" onclick="refreshPage()" title="Refresh entire page" aria-label="Refresh page">
+                                <i class="bi bi-arrow-clockwise"></i> <span class="d-none d-sm-inline">Refresh</span>
                             </button>
                             <span id="locationCoords" class="small d-block d-sm-inline">Lat: --, Lng: --</span>
                         </div>
@@ -514,6 +593,12 @@
         let locationFound = false;
         let lastEmitTime = 0;
         const EMIT_INTERVAL_MS = 2000;
+
+        // ========== REFRESH PAGE ==========
+        function refreshPage() {
+            console.log('🔄 Refreshing page...');
+            window.location.reload();
+        }
 
         // ========== SMOOTH MARKER ANIMATION ==========
         function moveMarkerSmoothly(marker, newLat, newLng, duration) {
