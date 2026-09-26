@@ -71,6 +71,37 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
+        /* ========== DRIVER GREEN DOT MARKER ========== */
+        .green-dot-driver {
+            background: transparent !important;
+            border: none !important;
+        }
+        .green-dot-driver .dot-inner {
+            position: relative;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #22c55e;
+            border: 3px solid #ffffff;
+            box-shadow:
+                0 0 0 2px #15803d,
+                0 3px 10px rgba(0, 0, 0, 0.35);
+        }
+        .green-dot-driver .dot-pulse {
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background: #22c55e;
+            opacity: 0.45;
+            animation: driverDotPulse 2s ease-out infinite;
+            z-index: -1;
+        }
+        @keyframes driverDotPulse {
+            0%   { transform: scale(0.9); opacity: 0.55; }
+            70%  { transform: scale(2.1); opacity: 0;    }
+            100% { transform: scale(2.1); opacity: 0;    }
+        }
+
         /* ========== REFRESH PAGE BUTTON ========== */
         .refresh-page-btn {
             margin-left: 4px;
@@ -600,27 +631,63 @@
             window.location.reload();
         }
 
-        // ========== SMOOTH MARKER ANIMATION ==========
-        function moveMarkerSmoothly(marker, newLat, newLng, duration) {
-            duration = duration || 2000;
-            const start = marker.getLatLng();
-            const end = L.latLng(newLat, newLng);
-            const startTime = performance.now();
+        // ========== CONTINUOUS SMOOTH MARKER GLIDE ==========
+        // The marker chases a target position with exponential smoothing.
+        // New GPS points just move the target — no restarts, no jumps.
+        // Result: the dot glides continuously across the map.
 
-            if (start.distanceTo(end) < 1) {
-                marker.setLatLng(end);
+        let markerTarget  = null;    // newest known L.LatLng
+        let markerCurrent = null;    // currently rendered L.LatLng
+        let glideRafId    = null;
+        let lastGlideTime = 0;
+
+        // 1.5 ≈ 95% of the way to the target in ~2 s (matches GPS cadence)
+        const GLIDE_K = 1.5;
+
+        function glideStep(now) {
+            if (!currentMarker || !markerTarget || !markerCurrent) {
+                glideRafId = null;
                 return;
             }
 
-            function step(now) {
-                const t = Math.min((now - startTime) / duration, 1);
-                const eased = 1 - Math.pow(1 - t, 3);
-                const lat = start.lat + (end.lat - start.lat) * eased;
-                const lng = start.lng + (end.lng - start.lng) * eased;
-                marker.setLatLng([lat, lng]);
-                if (t < 1) requestAnimationFrame(step);
+            const dt = lastGlideTime ? Math.min(now - lastGlideTime, 100) : 16;
+            lastGlideTime = now;
+
+            // Frame-rate independent exponential lerp
+            const f = 1 - Math.exp(-GLIDE_K * dt / 1000);
+
+            markerCurrent = L.latLng(
+                markerCurrent.lat + (markerTarget.lat - markerCurrent.lat) * f,
+                markerCurrent.lng + (markerTarget.lng - markerCurrent.lng) * f
+            );
+
+            currentMarker.setLatLng(markerCurrent);
+
+            // Keep gliding until we're within ~30 cm of the target
+            if (markerCurrent.distanceTo(markerTarget) > 0.3) {
+                glideRafId = requestAnimationFrame(glideStep);
+            } else {
+                markerCurrent = markerTarget;
+                currentMarker.setLatLng(markerCurrent);
+                glideRafId = null;
             }
-            requestAnimationFrame(step);
+        }
+
+        function setMarkerTarget(lat, lng) {
+            markerTarget = L.latLng(lat, lng);
+
+            // First position — snap instantly, no glide
+            if (!markerCurrent) {
+                markerCurrent = markerTarget;
+                if (currentMarker) currentMarker.setLatLng(markerCurrent);
+                return;
+            }
+
+            // Already gliding — just update the target; loop will pick it up
+            if (!glideRafId) {
+                lastGlideTime = 0;
+                glideRafId = requestAnimationFrame(glideStep);
+            }
         }
 
         // ========== UNIFIED GPS WATCH ==========
@@ -644,7 +711,7 @@
                     currentAccuracy = accuracy;
 
                     if (currentMarker) {
-                        moveMarkerSmoothly(currentMarker, lat, lng, 2000);
+                        setMarkerTarget(lat, lng);
                         currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`);
                     }
 
@@ -652,8 +719,8 @@
                         if (layer instanceof L.Circle) map.removeLayer(layer);
                     });
                     L.circle([lat, lng], {
-                        color: '#667eea',
-                        fillColor: '#667eea',
+                        color: '#22c55e',
+                        fillColor: '#22c55e',
                         fillOpacity: 0.1,
                         radius: accuracy
                     }).addTo(map);
@@ -718,7 +785,7 @@
                 }
             );
 
-            console.log('📍 watchPosition started — smooth glide @ ' + EMIT_INTERVAL_MS + 'ms');
+            console.log('📍 watchPosition started — continuous glide @ ' + EMIT_INTERVAL_MS + 'ms');
         }
 
         // ========== MAP INITIALIZATION ==========
@@ -769,18 +836,29 @@
                 errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8//8/AwAI/AL+fH5B4AAAAABJRU5ErkJggg=='
             }).addTo(map);
 
+            // ========== GREEN DOT DRIVER MARKER ==========
             const driverIcon = L.divIcon({
-                html: '<i class="bi bi-truck" style="font-size: 28px; color: #667eea;"></i>',
-                iconSize: [28, 28],
-                className: 'custom-icon'
+                html: `
+                    <div class="dot-inner">
+                        <div class="dot-pulse"></div>
+                    </div>
+                `,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -14],
+                className: 'green-dot-driver'
             });
 
             currentMarker = L.marker([lat, lng], { icon: driverIcon }).addTo(map);
             currentMarker.bindPopup('📍 Your Location').openPopup();
 
+            // Seed the glide engine with the initial position
+            markerCurrent = L.latLng(lat, lng);
+            markerTarget  = L.latLng(lat, lng);
+
             L.circle([lat, lng], {
-                color: '#667eea',
-                fillColor: '#667eea',
+                color: '#22c55e',
+                fillColor: '#22c55e',
                 fillOpacity: 0.1,
                 radius: 50
             }).addTo(map);
@@ -788,7 +866,7 @@
             setTimeout(() => { map.invalidateSize(); }, 500);
 
             startGPSWatch();
-            console.log('🗺️ Map initialized — starting smooth GPS watch');
+            console.log('🗺️ Map initialized — starting continuous GPS glide');
         }
 
         // ========== VOICE ==========
@@ -842,7 +920,7 @@
 
                         map.setView([lat, lng], 17);
                         if (currentMarker) {
-                            moveMarkerSmoothly(currentMarker, lat, lng, 500);
+                            setMarkerTarget(lat, lng);
                             currentMarker.bindPopup(`📍 Your Location<br>Accuracy: ${Math.round(accuracy)}m`).openPopup();
                         }
                         currentLat = lat;
