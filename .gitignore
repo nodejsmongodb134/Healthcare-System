@@ -33,3 +33,6 @@ iisnode/
 
 # Scripts (dev tools — not deployed)
 scripts/
+
+# Scripts (dev tools)
+scripts/
