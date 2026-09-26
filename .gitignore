@@ -30,3 +30,6 @@ coverage/
 iisnode/
 # Corrupted file backups
 *.broken-*
+
+# Scripts (dev tools — not deployed)
+scripts/
