@@ -574,7 +574,6 @@
         socket.on('driver-location-update', (data) => {
             console.log('📍 Location update:', data);
             updateMarker(data);
-            socket.emit('get-active-drivers');
         });
 
         socket.on('driver-disconnected', (data) => {
