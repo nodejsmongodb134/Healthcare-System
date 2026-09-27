@@ -1,4 +1,4 @@
-# Dependencies
+﻿# Dependencies
 node_modules/
 package-lock.json
 
@@ -31,14 +31,16 @@ iisnode/
 # Corrupted file backups
 *.broken-*
 
-# Scripts (dev tools � not deployed)
-scripts/
+# Scripts (dev tools — not deployed)
 
 # Scripts (dev tools)
-scripts/
 
 *.bak-index-*
 
 *.bak-select-*
 
 *.bak-nurse-reemit-*
+
+*.bak-cachev2-*
+
+*.bak-cache-*

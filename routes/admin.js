@@ -11,6 +11,7 @@ const Appointment = require('../models/Appointment');
 const Message = require('../models/Message');
 const Order = require('../models/Order');
 const { logAdminAction } = require('../utils/auditLogger');
+const cache = require('../utils/cache');
 
 // Helper: calculate age
 function calculateAge(dateOfBirth) {
@@ -28,43 +29,60 @@ function calculateAge(dateOfBirth) {
 // ===================== DASHBOARD =====================
 router.get('/dashboard', adminMiddleware, async (req, res) => {
   try {
-    const [
-      totalUsers,
-      totalPatients,
-      totalNurses,
-      totalDrivers,
-      totalAppointments,
-      totalMessages,
-      totalOrders
-    ] = await Promise.all([
-      User.countDocuments(),
-      User.countDocuments({ role: 'patient' }),
-      User.countDocuments({ role: 'nurse' }),
-      Driver.countDocuments(),
-      Appointment.countDocuments(),
-      Message.countDocuments(),
-      Order.countDocuments()
-    ]);
+    let data = cache.get('admin:dashboard');
 
-    const recentAppointments = await Appointment.find().sort({ createdAt: -1 }).limit(10);
-    const recentMessages = await Message.find().sort({ createdAt: -1 }).limit(10);
-    const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(10);
-    const recentPatients = await User.find({ role: 'patient' }).sort({ createdAt: -1 }).limit(10).select('-password');
-    const recentDrivers = await Driver.find().sort({ createdAt: -1 }).limit(10);
-    const nurses = await User.find({ role: 'nurse' }).select('-password');
-
-    res.render('dashboard/admin', {
-      title: 'Admin Dashboard',
-      user: req.session.user,
-      stats: {
+    if (!data) {
+      const [
         totalUsers,
         totalPatients,
         totalNurses,
         totalDrivers,
         totalAppointments,
         totalMessages,
-        totalOrders
-      },
+        totalOrders,
+        recentAppointments,
+        recentMessages,
+        recentOrders,
+        recentPatients,
+        recentDrivers,
+        nurses
+      ] = await Promise.all([
+        User.countDocuments(),
+        User.countDocuments({ role: 'patient' }),
+        User.countDocuments({ role: 'nurse' }),
+        Driver.countDocuments(),
+        Appointment.countDocuments(),
+        Message.countDocuments(),
+        Order.countDocuments(),
+        Appointment.find().sort({ createdAt: -1 }).limit(10),
+        Message.find().sort({ createdAt: -1 }).limit(10),
+        Order.find().sort({ createdAt: -1 }).limit(10),
+        User.find({ role: 'patient' }).sort({ createdAt: -1 }).limit(10).select('-password'),
+        Driver.find().sort({ createdAt: -1 }).limit(10),
+        User.find({ role: 'nurse' }).select('-password')
+      ]);
+
+      data = {
+        stats: {
+          totalUsers, totalPatients, totalNurses, totalDrivers,
+          totalAppointments, totalMessages, totalOrders
+        },
+        recentAppointments,
+        recentMessages,
+        recentOrders,
+        recentPatients,
+        recentDrivers,
+        nurses
+      };
+      cache.set('admin:dashboard', data, 30000);
+    }
+
+    const { stats, recentAppointments, recentMessages, recentOrders, recentPatients, recentDrivers, nurses } = data;
+
+    res.render('dashboard/admin', {
+      title: 'Admin Dashboard',
+      user: req.session.user,
+      stats,
       recentAppointments,
       recentMessages,
       recentOrders,
@@ -512,8 +530,6 @@ router.get('/test', (req, res) => {
   res.send('Admin router is working!');
 });
 
-
-
 // ===================== CHANGE PASSWORD =====================
 router.get('/change-password', adminMiddleware, (req, res) => {
   res.render('admin/change-password', {
@@ -567,7 +583,6 @@ router.post('/change-password', adminMiddleware, async (req, res) => {
     res.redirect('/admin/change-password');
   }
 });
-
 
 console.log('✅ Admin router fully loaded (all list & detail routes)');
 module.exports = router;

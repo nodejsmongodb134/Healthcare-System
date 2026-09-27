@@ -6,6 +6,7 @@ const Appointment = require('../models/Appointment');
 const bcrypt = require('bcryptjs');
 const { blindIndex } = require('../utils/blindIndex');
 const crypto = require('crypto');
+const cache = require('../utils/cache');
 
 // ============================================================
 // HELPERS
@@ -491,17 +492,23 @@ router.get('/nurse-dashboard', async (req, res) => {
     }
 
     // Clinic-wide stats (nurses act as admins)
-    const [total, pending, confirmed, cancelled] = await Promise.all([
-      Appointment.countDocuments({}),
-      Appointment.countDocuments({ status: 'pending' }),
-      Appointment.countDocuments({ status: 'confirmed' }),
-      Appointment.countDocuments({ status: 'cancelled' })
-    ]);
+    let stats = cache.get('nurse:stats');
+
+    if (!stats) {
+      const [total, pending, confirmed, cancelled] = await Promise.all([
+        Appointment.countDocuments({}),
+        Appointment.countDocuments({ status: 'pending' }),
+        Appointment.countDocuments({ status: 'confirmed' }),
+        Appointment.countDocuments({ status: 'cancelled' })
+      ]);
+      stats = { total, pending, confirmed, cancelled };
+      cache.set('nurse:stats', stats, 30000);
+    }
 
     res.render('dashboard/nurse-dashboard', {
       title: 'Nurse Dashboard',
       user: req.session.user,
-      stats: { total, pending, confirmed, cancelled }
+      stats
     });
   } catch (error) {
     console.error('Nurse dashboard error:', error);
