@@ -48,3 +48,5 @@ iisnode/
 *.bak-cachev2-*
 
 *.bak-cache-*
+
+*.bak-tabs-*
