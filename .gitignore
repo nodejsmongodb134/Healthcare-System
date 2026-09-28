@@ -54,3 +54,5 @@ iisnode/
 *.bak-tabs-*
 
 *.bak-lat-*
+
+*.bak-rmlink2-*
