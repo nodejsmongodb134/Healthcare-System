@@ -50,3 +50,7 @@ iisnode/
 *.bak-cache-*
 
 *.bak-tabs-*
+
+*.bak-tabs-*
+
+*.bak-lat-*
